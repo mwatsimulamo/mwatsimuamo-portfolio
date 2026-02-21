@@ -113,7 +113,22 @@ Modifiez les variables CSS dans `style.css` :
 }
 ```
 
-## 📤 Déploiement sur GitHub Pages
+## 📤 Déploiement
+
+### Option 1 : Vercel (Recommandé) ⭐
+
+Pour un déploiement rapide et professionnel, consultez le guide complet :
+👉 **[GUIDE_DEPLOIEMENT_VERCEL.md](GUIDE_DEPLOIEMENT_VERCEL.md)**
+
+**Avantages de Vercel :**
+- ✅ Déploiement automatique depuis GitHub
+- ✅ HTTPS gratuit
+- ✅ CDN global pour des performances optimales
+- ✅ Prévisualisations pour chaque commit
+- ✅ Analytics intégré
+- ✅ Domaine personnalisé gratuit
+
+### Option 2 : GitHub Pages
 
 ### Méthode 1 : Via l'interface GitHub
 

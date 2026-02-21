@@ -5,7 +5,8 @@
   "main": "index.html",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build": "echo 'No build step required for static site'"
   },
   "keywords": [
     "portfolio",
@@ -15,7 +16,7 @@
     "cardano",
     "blockchain"
   ],
-  "author": "Votre Nom",
+  "author": "Olivier Mwatsimulamo",
   "license": "MIT"
 }
 

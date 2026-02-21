@@ -30,6 +30,9 @@ node_modules/
 *.bak
 *.backup
 
+# Vercel
+.vercel
+
 # Fichiers personnels (optionnel - décommentez si nécessaire)
 # assets/images/profile.jpg
 # assets/cv/cv.pdf
