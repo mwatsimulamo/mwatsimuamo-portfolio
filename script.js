@@ -25,11 +25,13 @@ document.addEventListener('DOMContentLoaded', function() {
     initNavigation();
     loadProjects();
     loadArticles();
+    loadSkills();
     initContactForm();
     initCVPreview();
     checkProfileImage();
     initScrollAnimations();
     initLanguageSelector();
+    initArticleAdmin();
 });
 
 // ============================================
@@ -242,7 +244,7 @@ function createProjectCard(project) {
 // ============================================
 
 /**
- * Charge les articles depuis articles.json et les affiche
+ * Charge les articles depuis articles.json et localStorage, puis les affiche
  */
 async function loadArticles() {
     const articlesList = document.getElementById('articlesList');
@@ -253,14 +255,21 @@ async function loadArticles() {
     }
     
     try {
+        // Charger les articles depuis le fichier JSON
         const response = await fetch('articles.json');
-        if (!response.ok) {
-            throw new Error('Impossible de charger les articles');
+        let jsonArticles = [];
+        
+        if (response.ok) {
+            jsonArticles = await response.json();
         }
         
-        const articles = await response.json();
+        // Charger les articles depuis localStorage
+        const localArticles = getLocalArticles();
         
-        if (articles.length === 0) {
+        // Combiner les deux listes (articles locaux en premier)
+        const allArticles = [...localArticles, ...jsonArticles];
+        
+        if (allArticles.length === 0) {
             const noArticlesText = (translations[currentLang] && translations[currentLang].articles && translations[currentLang].articles.noArticles) 
                 ? translations[currentLang].articles.noArticles 
                 : 'Aucun article disponible pour le moment.';
@@ -269,7 +278,7 @@ async function loadArticles() {
         }
         
         articlesList.innerHTML = '';
-        articles.forEach(article => {
+        allArticles.forEach(article => {
             const articleItem = createArticleItem(article);
             articlesList.appendChild(articleItem);
         });
@@ -285,6 +294,73 @@ async function loadArticles() {
             `;
         }
     }
+}
+
+/**
+ * Récupère les articles stockés dans localStorage
+ */
+function getLocalArticles() {
+    try {
+        const stored = localStorage.getItem('portfolio-articles');
+        return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+        console.error('Erreur lors de la lecture des articles locaux:', error);
+        return [];
+    }
+}
+
+/**
+ * Sauvegarde un article dans localStorage
+ */
+function saveLocalArticle(article) {
+    const articles = getLocalArticles();
+    articles.push(article);
+    localStorage.setItem('portfolio-articles', JSON.stringify(articles));
+}
+
+/**
+ * Supprime tous les articles locaux
+ */
+function clearLocalArticles() {
+    localStorage.removeItem('portfolio-articles');
+}
+
+/**
+ * Exporte tous les articles (JSON + localStorage) en fichier JSON
+ */
+function exportArticles() {
+    const jsonArticles = [];
+    const localArticles = getLocalArticles();
+    
+    // Essayer de charger les articles du JSON
+    fetch('articles.json')
+        .then(response => response.json())
+        .then(articles => {
+            const allArticles = [...localArticles, ...articles];
+            const jsonString = JSON.stringify(allArticles, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'articles.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        })
+        .catch(() => {
+            // Si le fichier JSON n'existe pas, exporter seulement les articles locaux
+            const jsonString = JSON.stringify(localArticles, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'articles.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
 }
 
 /**
@@ -477,6 +553,78 @@ function formatDate(dateString) {
 }
 
 // ============================================
+// CHARGEMENT DES COMPÉTENCES
+// ============================================
+
+/**
+ * Charge les compétences depuis skills.json et les affiche avec des barres de progression
+ */
+async function loadSkills() {
+    const skillCategories = {
+        'skillsFrontend': 'frontend',
+        'skillsBackend': 'backend',
+        'skillsBlockchain': 'blockchain',
+        'skillsTools': 'tools'
+    };
+    
+    try {
+        const response = await fetch('skills.json');
+        if (!response.ok) {
+            throw new Error('Impossible de charger les compétences');
+        }
+        
+        const skillsData = await response.json();
+        
+        // Charger chaque catégorie
+        for (const [elementId, categoryKey] of Object.entries(skillCategories)) {
+            const container = document.getElementById(elementId);
+            if (!container) continue;
+            
+            const skills = skillsData[categoryKey];
+            if (!skills || skills.length === 0) {
+                container.innerHTML = '<p class="loading">Aucune compétence disponible.</p>';
+                continue;
+            }
+            
+            container.innerHTML = '';
+            skills.forEach(skill => {
+                const skillElement = createSkillItem(skill);
+                container.appendChild(skillElement);
+            });
+        }
+        
+    } catch (error) {
+        console.error('Erreur lors du chargement des compétences:', error);
+        // Afficher un message d'erreur dans tous les conteneurs
+        Object.keys(skillCategories).forEach(elementId => {
+            const container = document.getElementById(elementId);
+            if (container) {
+                container.innerHTML = '<p class="loading" style="color: #ef4444;">Erreur lors du chargement des compétences.</p>';
+            }
+        });
+    }
+}
+
+/**
+ * Crée un élément de compétence avec pourcentage
+ * @param {Object} skill - Données de la compétence (name, icon, level)
+ * @returns {HTMLElement} - Élément HTML de la compétence
+ */
+function createSkillItem(skill) {
+    const skillItem = document.createElement('div');
+    skillItem.className = 'skill-item';
+    
+    skillItem.innerHTML = `
+        <i class="${skill.icon}"></i>
+        <span class="skill-name">${skill.name}</span>
+        <span class="skill-percentage">${skill.level}%</span>
+    `;
+    
+    return skillItem;
+}
+
+
+// ============================================
 // ANIMATIONS AU SCROLL
 // ============================================
 
@@ -486,6 +634,7 @@ function formatDate(dateString) {
 function initScrollAnimations() {
     // Sélectionner tous les éléments à animer
     const animatedElements = document.querySelectorAll('.section, .skill-category, .project-card, .article-item');
+    
     
     // Créer un Intersection Observer pour détecter quand les éléments entrent dans la vue
     const observer = new IntersectionObserver((entries) => {
@@ -666,6 +815,135 @@ function initLanguageSelector() {
         option.addEventListener('click', function() {
             const lang = this.getAttribute('data-lang');
             changeLanguage(lang);
+        });
+    });
+}
+
+// ============================================
+// ADMINISTRATION DES ARTICLES
+// ============================================
+
+/**
+ * Initialise le système d'administration des articles
+ */
+function initArticleAdmin() {
+    const adminBtn = document.getElementById('adminBtn');
+    const adminPanel = document.getElementById('adminPanel');
+    const closeAdminBtn = document.getElementById('closeAdminBtn');
+    const addArticleForm = document.getElementById('addArticleForm');
+    const exportBtn = document.getElementById('exportArticlesBtn');
+    const clearBtn = document.getElementById('clearLocalArticlesBtn');
+    
+    // Ouvrir le panneau d'administration
+    if (adminBtn && adminPanel) {
+        adminBtn.addEventListener('click', function() {
+            adminPanel.style.display = 'flex';
+            updateLocalArticlesList();
+        });
+    }
+    
+    // Fermer le panneau d'administration
+    if (closeAdminBtn && adminPanel) {
+        closeAdminBtn.addEventListener('click', function() {
+            adminPanel.style.display = 'none';
+        });
+    }
+    
+    // Fermer en cliquant en dehors
+    if (adminPanel) {
+        adminPanel.addEventListener('click', function(e) {
+            if (e.target === adminPanel) {
+                adminPanel.style.display = 'none';
+            }
+        });
+    }
+    
+    // Gérer l'ajout d'un article
+    if (addArticleForm) {
+        addArticleForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('articleTitle').value;
+            const description = document.getElementById('articleDescription').value;
+            const link = document.getElementById('articleLink').value;
+            const date = document.getElementById('articleDate').value || new Date().toISOString().split('T')[0];
+            
+            const article = {
+                title: title,
+                description: description,
+                link: link,
+                date: date
+            };
+            
+            saveLocalArticle(article);
+            addArticleForm.reset();
+            
+            // Recharger les articles
+            loadArticles();
+            updateLocalArticlesList();
+            
+            // Afficher un message de succès
+            alert('Article ajouté avec succès !');
+        });
+    }
+    
+    // Exporter les articles
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            exportArticles();
+            alert('Fichier articles.json téléchargé ! Vous pouvez le remplacer dans votre projet.');
+        });
+    }
+    
+    // Effacer les articles locaux
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            if (confirm('Êtes-vous sûr de vouloir effacer tous les articles ajoutés localement ?')) {
+                clearLocalArticles();
+                loadArticles();
+                updateLocalArticlesList();
+                alert('Articles locaux effacés !');
+            }
+        });
+    }
+}
+
+/**
+ * Met à jour la liste des articles locaux dans le panneau d'administration
+ */
+function updateLocalArticlesList() {
+    const localArticlesList = document.getElementById('localArticlesList');
+    if (!localArticlesList) return;
+    
+    const articles = getLocalArticles();
+    
+    if (articles.length === 0) {
+        localArticlesList.innerHTML = '<p style="color: var(--text-secondary);">Aucun article ajouté localement.</p>';
+        return;
+    }
+    
+    localArticlesList.innerHTML = articles.map((article, index) => `
+        <div class="admin-article-item">
+            <div class="admin-article-info">
+                <strong>${article.title}</strong>
+                <p>${article.description}</p>
+                <small>${article.date || 'Date non spécifiée'}</small>
+            </div>
+            <button class="btn-remove-article" data-index="${index}">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `).join('');
+    
+    // Ajouter les gestionnaires de suppression
+    localArticlesList.querySelectorAll('.btn-remove-article').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            const articles = getLocalArticles();
+            articles.splice(index, 1);
+            localStorage.setItem('portfolio-articles', JSON.stringify(articles));
+            loadArticles();
+            updateLocalArticlesList();
         });
     });
 }

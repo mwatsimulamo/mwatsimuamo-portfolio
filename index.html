@@ -113,39 +113,9 @@
                 <h3 class="skill-category-title">
                     <i class="fas fa-paint-brush"></i> <span data-i18n="skills.frontend">Frontend</span>
                 </h3>
-                <div class="skills-grid">
-                    <div class="skill-item">
-                        <i class="fab fa-react"></i>
-                        <span>React</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fab fa-vuejs"></i>
-                        <span>Vue.js</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fab fa-angular"></i>
-                        <span>Angular</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fab fa-html5"></i>
-                        <span>HTML5</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fab fa-css3-alt"></i>
-                        <span>CSS3</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fab fa-js"></i>
-                        <span>JavaScript</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fab fa-sass"></i>
-                        <span>SASS</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fab fa-bootstrap"></i>
-                        <span>Bootstrap</span>
-                    </div>
+                <div class="skills-grid" id="skillsFrontend">
+                    <!-- Les compétences seront chargées dynamiquement depuis skills.json -->
+                    <div class="loading">Chargement des compétences...</div>
                 </div>
             </div>
 
@@ -154,31 +124,9 @@
                 <h3 class="skill-category-title">
                     <i class="fas fa-server"></i> <span data-i18n="skills.backend">Backend</span>
                 </h3>
-                <div class="skills-grid">
-                    <div class="skill-item">
-                        <i class="fab fa-node-js"></i>
-                        <span>Node.js</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fab fa-python"></i>
-                        <span>Python</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fas fa-database"></i>
-                        <span>PostgreSQL</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fas fa-database"></i>
-                        <span>MongoDB</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fab fa-php"></i>
-                        <span>PHP</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fas fa-fire"></i>
-                        <span>Firebase</span>
-                    </div>
+                <div class="skills-grid" id="skillsBackend">
+                    <!-- Les compétences seront chargées dynamiquement depuis skills.json -->
+                    <div class="loading">Chargement des compétences...</div>
                 </div>
             </div>
 
@@ -187,31 +135,9 @@
                 <h3 class="skill-category-title">
                     <i class="fas fa-coins"></i> <span data-i18n="skills.blockchain">Blockchain & Cardano</span>
                 </h3>
-                <div class="skills-grid">
-                    <div class="skill-item">
-                        <i class="fas fa-link"></i>
-                        <span>Plutus</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fas fa-code"></i>
-                        <span>Smart Contracts</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fas fa-mobile-alt"></i>
-                        <span>DApps</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fas fa-wallet"></i>
-                        <span>Cardano Wallets</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fas fa-network-wired"></i>
-                        <span>Cardano CLI</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fas fa-book"></i>
-                        <span>Tutoriels Cardano</span>
-                    </div>
+                <div class="skills-grid" id="skillsBlockchain">
+                    <!-- Les compétences seront chargées dynamiquement depuis skills.json -->
+                    <div class="loading">Chargement des compétences...</div>
                 </div>
             </div>
 
@@ -220,27 +146,9 @@
                 <h3 class="skill-category-title">
                     <i class="fas fa-tools"></i> <span data-i18n="skills.tools">Outils</span>
                 </h3>
-                <div class="skills-grid">
-                    <div class="skill-item">
-                        <i class="fab fa-git-alt"></i>
-                        <span>Git</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fab fa-docker"></i>
-                        <span>Docker</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fab fa-figma"></i>
-                        <span>Figma</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fas fa-terminal"></i>
-                        <span>Linux</span>
-                    </div>
-                    <div class="skill-item">
-                        <i class="fab fa-aws"></i>
-                        <span>AWS</span>
-                    </div>
+                <div class="skills-grid" id="skillsTools">
+                    <!-- Les compétences seront chargées dynamiquement depuis skills.json -->
+                    <div class="loading">Chargement des compétences...</div>
                 </div>
             </div>
         </div>
@@ -260,13 +168,65 @@
     <!-- Section Articles -->
     <section id="articles" class="section section-alt">
         <div class="container">
-            <h2 class="section-title" data-i18n="articles.title">Articles & Publications</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+                <h2 class="section-title" data-i18n="articles.title" style="margin-bottom: 0;">Articles & Publications</h2>
+                <button class="btn btn-secondary" id="adminBtn">
+                    <i class="fas fa-cog"></i> Administration
+                </button>
+            </div>
             <div class="articles-list" id="articlesList">
                 <!-- Les articles seront chargés dynamiquement depuis articles.json -->
                 <div class="loading" data-i18n="articles.loading">Chargement des articles...</div>
             </div>
         </div>
     </section>
+
+    <!-- Panneau d'Administration -->
+    <div id="adminPanel" class="admin-panel" style="display: none;">
+        <div class="admin-content">
+            <div class="admin-header">
+                <h2><i class="fas fa-cog"></i> Administration des Articles</h2>
+                <button class="admin-close" id="closeAdminBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="admin-body">
+                <form id="addArticleForm">
+                    <div class="form-group">
+                        <label for="articleTitle">Titre de l'article *</label>
+                        <input type="text" id="articleTitle" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="articleDescription">Description *</label>
+                        <textarea id="articleDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="articleLink">Lien de l'article *</label>
+                        <input type="url" id="articleLink" name="link" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="articleDate">Date (optionnel)</label>
+                        <input type="date" id="articleDate" name="date">
+                    </div>
+                    <div class="admin-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Ajouter l'article
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="exportArticlesBtn">
+                            <i class="fas fa-download"></i> Exporter articles.json
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="clearLocalArticlesBtn">
+                            <i class="fas fa-trash"></i> Effacer les articles locaux
+                        </button>
+                    </div>
+                </form>
+                <div class="admin-articles-list" id="adminArticlesList">
+                    <h3>Articles ajoutés localement</h3>
+                    <div id="localArticlesList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Section CV -->
     <section id="cv" class="section">
@@ -277,7 +237,7 @@
                     <iframe id="cvPreview" src="" frameborder="0"></iframe>
                 </div>
                 <div class="cv-actions">
-                    <a href="assets/cv/CV%20Olivier.pdf" class="btn btn-primary" download="CV Olivier.pdf" id="downloadCvBtn" data-i18n="cv.download">
+                    <a href="#" class="btn btn-primary" download id="downloadCvBtn" data-i18n="cv.download">
                         <i class="fas fa-download"></i> Télécharger le CV (PDF)
                     </a>
                 </div>
@@ -293,19 +253,19 @@
                 <div class="contact-info">
                     <h3 data-i18n="contact.social">Réseaux sociaux</h3>
                     <div class="social-links">
-                        <a href="mailto:votre.email@example.com" class="social-link" target="_blank" rel="noopener">
+                        <a href="mailto:mwatsimulamoolivier@gmail.com" class="social-link" target="_blank" rel="noopener">
                             <i class="fas fa-envelope"></i>
                             <span>Email</span>
                         </a>
-                        <a href="https://linkedin.com/in/votre-profil" class="social-link" target="_blank" rel="noopener">
+                        <a href="http://www.linkedin.com/in/olivier-mwatsimulamo-389b51233" class="social-link" target="_blank" rel="noopener">
                             <i class="fab fa-linkedin"></i>
                             <span>LinkedIn</span>
                         </a>
-                        <a href="https://twitter.com/votre-compte" class="social-link" target="_blank" rel="noopener">
+                        <a href="https://x.com/OlivierMWATSIM1" class="social-link" target="_blank" rel="noopener">
                             <i class="fab fa-twitter"></i>
                             <span>Twitter/X</span>
                         </a>
-                        <a href="https://github.com/votre-compte" class="social-link" target="_blank" rel="noopener">
+                        <a href="https://github.com/mwatsimulamo" class="social-link" target="_blank" rel="noopener">
                             <i class="fab fa-github"></i>
                             <span>GitHub</span>
                         </a>

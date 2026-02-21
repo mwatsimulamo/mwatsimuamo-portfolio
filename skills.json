@@ -1,0 +1,29 @@
+{
+  "frontend": [
+    { "name": "React", "icon": "fab fa-react", "level": 85 },
+    { "name": "HTML", "icon": "fab fa-html5", "level": 95 },
+    { "name": "CSS", "icon": "fab fa-css3-alt", "level": 90 },
+    { "name": "JavaScript", "icon": "fab fa-js", "level": 88 }
+  ],
+  "backend": [
+    { "name": "Node.js", "icon": "fab fa-node-js", "level": 82 },
+    { "name": "Supabase", "icon": "fas fa-database", "level": 85 }
+  ],
+  "blockchain": [
+    { "name": "Plutus", "icon": "fas fa-link", "level": 88 },
+    { "name": "Haskell", "icon": "fas fa-link", "level": 85 },
+    { "name": "Aiken", "icon": "fas fa-link", "level": 80 },
+    { "name": "Marlowe", "icon": "fas fa-link", "level": 75 },
+    { "name": "Cardano Wallets", "icon": "fas fa-wallet", "level": 90 },
+    { "name": "Project catalyst", "icon": "fas fa-network-wired", "level": 85 },
+    { "name": "Blockfrost", "icon": "fas fa-cube", "level": 88 }
+  ],
+  "tools": [
+    { "name": "Git", "icon": "fab fa-git-alt", "level": 90 },
+    { "name": "Docker", "icon": "fab fa-docker", "level": 75 },
+    { "name": "Figma", "icon": "fab fa-figma", "level": 70 },
+    { "name": "Linux", "icon": "fas fa-terminal", "level": 85 },
+    { "name": "AWS", "icon": "fab fa-aws", "level": 72 }
+  ]
+}
+
