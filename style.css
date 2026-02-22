@@ -482,7 +482,7 @@ body {
 
 .skills-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: var(--spacing-md);
 }
 
@@ -493,29 +493,41 @@ body {
     gap: var(--spacing-xs);
     padding: var(--spacing-md);
     background-color: var(--bg-primary);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-sm);
-    transition: var(--transition-base);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.2s ease;
     cursor: default;
     position: relative;
+    border: 1px solid transparent;
+}
+
+a.skill-item {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
 }
 
 .skill-item:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
 }
 
-.skill-item i {
-    font-size: 32px;
+.skill-item--link:hover {
+    border-color: rgba(59, 130, 246, 0.25);
+}
+
+.skill-item i:first-of-type {
+    font-size: 2rem;
     color: var(--primary-color);
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: 2px;
 }
 
 .skill-name {
     font-size: var(--font-size-sm);
-    font-weight: 500;
-    color: var(--text-secondary);
+    font-weight: 600;
+    color: var(--text-primary);
     text-align: center;
+    line-height: 1.3;
 }
 
 .skill-percentage {
@@ -523,9 +535,24 @@ body {
     font-weight: 700;
     color: var(--primary-color);
     background-color: var(--bg-secondary);
-    padding: 4px 8px;
-    border-radius: 12px;
-    margin-top: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-top: 2px;
+}
+
+.skill-item-external {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.skill-item--link:hover .skill-item-external {
+    opacity: 1;
+    color: var(--primary-color);
 }
 
 /* Mise en avant Cardano */
@@ -540,7 +567,7 @@ body {
     color: var(--cardano-blue);
 }
 
-.cardano-highlight .skill-item i {
+.cardano-highlight .skill-item i:first-of-type {
     color: var(--cardano-blue);
 }
 
@@ -1789,7 +1816,7 @@ body {
     box-shadow: var(--shadow-lg);
 }
 
-.skill-item:hover i {
+.skill-item:hover i:first-of-type {
     animation: pulse 1s ease infinite;
     color: var(--primary-color);
     transform: scale(1.2);
@@ -2021,8 +2048,12 @@ body {
         padding: var(--spacing-sm);
     }
     
-    .skill-item i {
+    .skill-item i:first-of-type {
         font-size: 24px;
+    }
+    
+    .skill-item-external {
+        font-size: 0.6rem;
     }
     
     .skill-percentage {

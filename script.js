@@ -1164,7 +1164,8 @@ async function loadSkills() {
         'skillsFrontend': 'frontend',
         'skillsBackend': 'backend',
         'skillsBlockchain': 'blockchain',
-        'skillsTools': 'tools'
+        'skillsTools': 'tools',
+        'skillsCertifications': 'certifications'
     };
     
     try {
@@ -1206,20 +1207,29 @@ async function loadSkills() {
 }
 
 /**
- * Crée un élément de compétence avec pourcentage
- * @param {Object} skill - Données de la compétence (name, icon, level)
- * @returns {HTMLElement} - Élément HTML de la compétence
+ * Crée un élément de compétence avec pourcentage ; si skill.link est défini, toute la carte est cliquable (ouverture dans un nouvel onglet).
+ * @param {Object} skill - Données de la compétence (name, icon, level, link?)
+ * @returns {HTMLElement} - Élément HTML de la compétence (a ou div)
  */
 function createSkillItem(skill) {
-    const skillItem = document.createElement('div');
-    skillItem.className = 'skill-item';
-    
+    const hasLink = skill.link && typeof skill.link === 'string' && skill.link.trim() !== '';
+    const tag = hasLink ? 'a' : 'div';
+    const skillItem = document.createElement(tag);
+    skillItem.className = 'skill-item' + (hasLink ? ' skill-item--link' : '');
+    if (hasLink) {
+        skillItem.href = skill.link.trim();
+        skillItem.target = '_blank';
+        skillItem.rel = 'noopener noreferrer';
+        skillItem.setAttribute('title', 'Ouvrir ' + skill.name);
+    }
+    const certifiedText = (translations[currentLang] && translations[currentLang].skills && translations[currentLang].skills.certified) ? translations[currentLang].skills.certified : 'Certifié';
+    const badgeText = skill.certification ? certifiedText : (skill.level + '%');
     skillItem.innerHTML = `
         <i class="${skill.icon}"></i>
         <span class="skill-name">${skill.name}</span>
-        <span class="skill-percentage">${skill.level}%</span>
+        <span class="skill-percentage">${badgeText}</span>
+        ${hasLink ? '<i class="fas fa-external-link-alt skill-item-external" aria-hidden="true"></i>' : ''}
     `;
-    
     return skillItem;
 }
 

@@ -26,7 +26,9 @@
       "frontend": "Frontend",
       "backend": "Backend",
       "blockchain": "Blockchain & Cardano",
-      "tools": "Outils"
+      "tools": "Outils",
+      "certifications": "Certifications",
+      "certified": "Certifié"
     },
     "experiences": {
       "title": "Expériences",
@@ -102,7 +104,9 @@
       "frontend": "Frontend",
       "backend": "Backend",
       "blockchain": "Blockchain & Cardano",
-      "tools": "Tools"
+      "tools": "Tools",
+      "certifications": "Certifications",
+      "certified": "Certified"
     },
     "experiences": {
       "title": "Experience",
