@@ -1,33 +1,80 @@
 [
   {
-    "title": "Introduction aux Smart Contracts Cardano avec Plutus",
-    "description": "Guide complet pour débuter avec le développement de smart contracts sur Cardano. Découvrez les bases de Plutus, l'architecture des contrats et vos premiers exemples pratiques.",
-    "link": "https://medium.com/@votre-compte/introduction-smart-contracts-cardano-plutus",
-    "date": "2024-01-15"
+    "title": "Get Started with Cardano: A Guide to Essential Resources",
+    "description": "The most useful tools and platforms to get started in the Cardano ecosystem.",
+    "link": "https://forum.cardano.org/t/get-started-with-cardano-a-guide-to-essential-resources/152995/6",
+    "date": "2026-02-04"
   },
   {
-    "title": "Optimisation des Smart Contracts Plutus : Meilleures Pratiques",
-    "description": "Découvrez les techniques d'optimisation pour réduire les coûts d'exécution et améliorer les performances de vos smart contracts Plutus sur Cardano.",
-    "link": "https://your-blog.com/optimisation-smart-contracts-plutus",
-    "date": "2024-03-10"
+    "title": "Understanding Cardano Through Its Five Eras",
+    "description": "Cardano's development roadmap structured into five distinct eras.",
+    "link": "https://forum.cardano.org/t/understanding-cardano-through-its-five-eras/152877",
+    "date": "2026-01-28"
   },
   {
-    "title": "Comparaison des Frameworks Frontend Modernes : React vs Vue vs Angular",
-    "description": "Analyse approfondie des trois frameworks JavaScript les plus populaires. Avantages, inconvénients et cas d'usage pour vous aider à choisir le bon outil.",
-    "link": "https://tech-blog.com/comparaison-frameworks-frontend",
-    "date": "2024-04-05"
+    "title": "Project Catalyst: Why it's not a \"Loss of funds,\" but one of Cardano network's growth engines?",
+    "description": "How Catalyst trains builders and empowers the community as a sovereign funding system.",
+    "link": "https://forum.cardano.org/t/project-catalyst-why-its-not-a-loss-of-funds-but-one-of-cardano-networks-growth-engines/152833",
+    "date": "2026-01-26"
   },
   {
-    "title": "Sécurité dans le Développement Blockchain : Guide Complet",
-    "description": "Les principes essentiels de sécurité à appliquer lors du développement d'applications blockchain. Audit de code, tests et bonnes pratiques.",
-    "link": "https://security-blog.com/securite-blockchain-guide",
-    "date": "2024-05-12"
+    "title": "Transactions Blockchain : Cardano eUTXO, l'avantage sur Bitcoin et Ethereum",
+    "description": "Why eUTXO and Cardano's model matter for reliability and understanding blockchains.",
+    "link": "https://forum.cardano.org/t/article-pourquoi-le-modele-eutxo-de-cardano-est-une-revolution-comparaison-bitcoin-ethereum/152765/3",
+    "date": "2026-01-23"
   },
   {
-    "title": "Intégration de Wallets Cardano dans vos Applications Web",
-    "description": "Comment intégrer Nami, Eternl et autres wallets Cardano dans vos applications web. Exemples de code et bonnes pratiques pour une expérience utilisateur optimale.",
-    "link": "https://cardano-dev.com/integration-wallets-cardano",
-    "date": "2024-06-18"
+    "title": "Marlowe: The Easiest Gateway to Cardano Smart Contracts",
+    "description": "A practical, low-barrier way to create smart contracts on Cardano.",
+    "link": "https://forum.cardano.org/t/marlowe-the-easiest-gateway-to-cardano-smart-contracts/152670",
+    "date": "2026-01-20"
+  },
+  {
+    "title": "Real-World Assets and Tokenization: Bringing the Tangible World On-Chain",
+    "description": "How tokenizing RWAs is transforming the global economy.",
+    "link": "https://oliviermwatsimulamo.blogspot.com/2025/09/real-world-assets-and-tokenization.html",
+    "date": "2025-09-22"
+  },
+  {
+    "title": "Decentralising Regulated Real World Assets: The Case of Real Estate",
+    "description": "Why real estate remains centralized and how decentralization can open it up.",
+    "link": "https://oliviermwatsimulamo.blogspot.com/2025/08/decentralising-regulated-real-world.html",
+    "date": "2025-08-11"
+  },
+  {
+    "title": "Chain Maximalism: A Force or a Barrier to Web3 Evolution?",
+    "description": "The role of chain maximalism as crypto and DeFi evolve.",
+    "link": "https://medium.com/@mwatsimulamoolivier/chain-maximalism-a-force-or-a-barrier-to-web3-evolution-54965804cc4c",
+    "date": "2025-07-15"
+  },
+  {
+    "title": "Revolutionizing Property Governance: Xcavate's Vision for a Decentralized Future",
+    "description": "Xcavate's vision for a more just and transparent model for real estate.",
+    "link": "https://oliviermwatsimulamo.blogspot.com/2025/07/reinventing-real-estate-governance.html",
+    "date": "2025-07-10"
+  },
+  {
+    "title": "The earth in a Digital age: How blockchain is Redefining our relationship with land",
+    "description": "How land, one of our oldest assets, is being reimagined on-chain.",
+    "link": "https://oliviermwatsimulamo.blogspot.com/2025/06/earth-in-digital-age-how-blockchain-is.html",
+    "date": "2025-06-19"
+  },
+  {
+    "title": "Le Web 3.0, un univers d'opportunités pour le présent et l'avenir",
+    "description": "Comment intégrer les écosystèmes Web3 et en profiter pleinement.",
+    "link": "https://oliviermwatsimulamo.blogspot.com/2025/06/le-web-30-un-univers-dopportunites-pour.html",
+    "date": "2025-06-18"
+  },
+  {
+    "title": "Polkadot Meetup: Goma, DR Congo",
+    "description": "Recap of the Polkadot community meetup in Goma, May 2025.",
+    "link": "https://oliviermwatsimulamo.blogspot.com/2025/05/polkadot-meetup-goma-dr-congo.html",
+    "date": "2025-05-05"
+  },
+  {
+    "title": "Intersect MeetUp in the town of Goma",
+    "description": "A look back at the Intersect MeetUp in Goma, DRC.",
+    "link": "https://mwatsimulamo.blogspot.com/2024/08/intersect-meetup-in-town-of-goma.html",
+    "date": "2024-08-17"
   }
 ]
-
