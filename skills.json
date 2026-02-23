@@ -15,23 +15,23 @@
     { "name": "Supabase", "icon": "fas fa-database", "level": 85, "link": "https://supabase.com/" }
   ],
   "blockchain": [
-    { "name": "Haskell", "icon": "fas fa-code", "level": 55, "link": "https://www.haskell.org/" },
-    { "name": "Plutus", "icon": "fas fa-link", "level": 35, "link": "https://plutus.readthedocs.io/" },
-    { "name": "Aiken", "icon": "fas fa-link", "level": 60, "link": "https://aiken-lang.org/" },
-    { "name": "Lucid", "icon": "fas fa-wallet", "level": 60, "link": "https://lucid.space/" },
+    { "name": "Haskell", "icon": "fas fa-code", "level": 35, "link": "https://www.haskell.org/" },
+    { "name": "Plutus", "icon": "fas fa-link", "level": 30, "link": "https://plutus.readthedocs.io/" },
+    { "name": "Aiken", "icon": "fas fa-link", "level": 45, "link": "https://aiken-lang.org/" },
+    { "name": "Lucid", "icon": "fas fa-wallet", "level": 40, "link": "https://lucid.space/" },
     { "name": "Mesh SDK", "icon": "fas fa-cube", "level": 35, "link": "https://meshjs.dev/" },
-    { "name": "Blockfrost", "icon": "fas fa-cube", "level": 75, "link": "https://blockfrost.io/" },
+    { "name": "Blockfrost", "icon": "fas fa-cube", "level": 50, "link": "https://blockfrost.io/" },
     { "name": "Marlowe", "icon": "fas fa-file-contract", "level": 60, "link": "https://marlowe.iohk.io/" },
     { "name": "Project Catalyst", "icon": "fas fa-network-wired", "level": 98, "link": "https://projectcatalyst.io/" },
     { "name": "Cardano Wallets", "icon": "fas fa-wallet", "level": 97, "link": "https://devex.intersectmbo.org/docs/working-group/q1-2026/sessions/10-wallet-integration/session-resources" }
   ],
   "tools": [
-    { "name": "Obsidian", "icon": "fas fa-book", "level": 95, "link": "https://obsidian.md/" },
+    { "name": "Obsidian", "icon": "fas fa-book", "level": 70, "link": "https://obsidian.md/" },
     { "name": "Demeter.run", "icon": "fas fa-cloud", "level": 78, "link": "https://demeter.run/" },
-    { "name": "Canva", "icon": "fas fa-palette", "level": 90, "link": "https://www.canva.com/" },
-    { "name": "Marlowe Playground", "icon": "fas fa-play", "level": 95, "link": "https://play.marlowe.iohk.io/" },
-    { "name": "Mentimeter", "icon": "fas fa-poll", "level": 80, "link": "https://www.mentimeter.com/" },
-    { "name": "Git", "icon": "fab fa-git-alt", "level": 90, "link": "https://git-scm.com/" },
+    { "name": "Canva", "icon": "fas fa-palette", "level": 80, "link": "https://www.canva.com/" },
+    { "name": "Marlowe Playground", "icon": "fas fa-play", "level": 70, "link": "https://play.marlowe.iohk.io/" },
+    { "name": "Mentimeter", "icon": "fas fa-poll", "level": 75, "link": "https://www.mentimeter.com/" },
+    { "name": "Git", "icon": "fab fa-git-alt", "level": 70, "link": "https://git-scm.com/" },
     { "name": "Figma", "icon": "fab fa-figma", "level": 40, "link": "https://www.figma.com/" },
     { "name": "Linux", "icon": "fas fa-terminal", "level": 55, "link": "https://www.linux.org/" }
   ],
