@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "build": "echo 'No build step required for static site'"
+    "build": "node scripts/generate-supabase-config.cjs"
   },
   "keywords": [
     "portfolio",
