@@ -33,7 +33,7 @@ const CONTACT_EMAIL = 'mwatsimulamoolivier@gmail.com';
 const FORMSPREE_FORM_ID = 'mjgearjz';
 
 /** Nombre d'articles et d'expériences affichés par page (pagination). */
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 4;
 const ARTICLE_CATEGORIES = [
     'Web3',
     'Cardano Blockchain',
@@ -874,34 +874,110 @@ async function mergeSkillsFromSources() {
     return cloneSkillsData(fromFile);
 }
 
+async function getPortfolioBodyForPersist(contentKey) {
+    if (contentKey === 'articles' && Array.isArray(currentArticlesData)) {
+        return currentArticlesData.map(function (a) { return Object.assign({}, a); });
+    }
+    if (contentKey === 'projects' && Array.isArray(currentProjectsData)) {
+        return currentProjectsData.map(function (p) { return Object.assign({}, p); });
+    }
+    if (contentKey === 'experiences' && Array.isArray(currentExperiencesData)) {
+        return currentExperiencesData.map(function (e) { return Object.assign({}, e); });
+    }
+    if (contentKey === 'skills' && currentSkillsData) {
+        return cloneSkillsData(currentSkillsData);
+    }
+    if (contentKey === 'projects') return mergeProjectsFromSources();
+    if (contentKey === 'articles') return mergeArticlesFromSources();
+    if (contentKey === 'experiences') return mergeExperiencesFromSources();
+    if (contentKey === 'skills') return mergeSkillsFromSources();
+    return null;
+}
+
+function syncArticlesLocalFromCurrent() {
+    setLocalArticles(currentArticlesData);
+}
+
+function syncProjectsLocalFromCurrent() {
+    localStorage.setItem('portfolio-projects', JSON.stringify(currentProjectsData));
+}
+
+function syncExperiencesLocalFromCurrent() {
+    localStorage.setItem('portfolio-experiences', JSON.stringify(currentExperiencesData));
+}
+
+function ensureProjectsEditableSnapshot() {
+    if (!Array.isArray(currentProjectsData) || currentProjectsData.length === 0) return;
+    syncProjectsLocalFromCurrent();
+}
+
+function ensureExperiencesEditableSnapshot() {
+    if (!Array.isArray(currentExperiencesData) || currentExperiencesData.length === 0) return;
+    syncExperiencesLocalFromCurrent();
+}
+
+function normalizeArticleRecord(article) {
+    const clone = Object.assign({}, article);
+    clone.slug = getArticleCanonicalSlug(clone);
+    const bodyText = getArticleInternalBody(clone);
+    if (!clone.content && bodyText) clone.content = bodyText;
+    if (!clone.type) clone.type = bodyText ? 'direct' : 'external';
+    clone.category = normalizeArticleCategory(clone.category);
+    return clone;
+}
+
+function setCurrentArticlesDataset(articles) {
+    currentArticlesData = (Array.isArray(articles) ? articles : [])
+        .map(normalizeArticleRecord)
+        .sort(sortArticlesByPublicationDateDesc);
+    syncArticlesLocalFromCurrent();
+}
+
+function setCurrentProjectsDataset(projects) {
+    currentProjectsData = (Array.isArray(projects) ? projects : []).map(function (p) {
+        return Object.assign({}, p);
+    });
+    syncProjectsLocalFromCurrent();
+}
+
+function setCurrentExperiencesDataset(experiences) {
+    currentExperiencesData = (Array.isArray(experiences) ? experiences : []).map(function (e) {
+        return Object.assign({}, e);
+    });
+    syncExperiencesLocalFromCurrent();
+}
+
 /**
- * Pousse le JSON fusionné vers Supabase si le client est configuré et l’utilisateur connecté.
+ * Pousse le contenu affiché (current*Data) vers Supabase si l’admin est connecté.
  * @param {'projects'|'articles'|'experiences'|'skills'} contentKey
+ * @returns {Promise<{ok:boolean, reason?:string}>}
  */
-function notifySupabasePortfolioPersist(contentKey) {
-    if (typeof window.persistPortfolioContentToSupabase !== 'function') return;
-    let merger;
-    if (contentKey === 'projects') merger = mergeProjectsFromSources;
-    else if (contentKey === 'articles') merger = mergeArticlesFromSources;
-    else if (contentKey === 'experiences') merger = mergeExperiencesFromSources;
-    else if (contentKey === 'skills') merger = mergeSkillsFromSources;
-    else return;
-    merger()
-        .then(function (body) {
-            return window.persistPortfolioContentToSupabase(contentKey, body);
-        })
-        .then(function (res) {
-            if (!res) return;
-            if (res.ok) showToast('Synchronisé sur Supabase.', 'success');
-            else if (res.reason === 'no_session') {
-                showToast('Connectez-vous à Supabase (bandeau en bas) pour sauver en ligne.', 'info');
-            } else if (res.reason !== 'no_client') {
-                showToast('Supabase : ' + res.reason, 'info');
-            }
-        })
-        .catch(function (err) {
-            console.warn('Supabase persist', err);
-        });
+async function notifySupabasePortfolioPersist(contentKey) {
+    if (typeof window.persistPortfolioContentToSupabase !== 'function') {
+        return { ok: false, reason: 'no_client_fn' };
+    }
+    if (!isAdminUnlocked()) {
+        showToast('Connectez-vous en mode admin pour enregistrer dans Supabase.', 'info');
+        return { ok: false, reason: 'no_admin' };
+    }
+    try {
+        const body = await getPortfolioBodyForPersist(contentKey);
+        if (!body) return { ok: false, reason: 'no_body' };
+        const res = await window.persistPortfolioContentToSupabase(contentKey, body);
+        if (!res) return { ok: false, reason: 'no_response' };
+        if (res.ok) showToast('Synchronisé sur Supabase.', 'success');
+        else if (res.reason === 'no_session') {
+            showToast('Session Supabase expirée. Reconnectez-vous via Mode admin.', 'info');
+        } else if (res.reason !== 'no_client') {
+            showToast('Supabase : ' + res.reason, 'info');
+        }
+        return res;
+    } catch (err) {
+        console.warn('Supabase persist', err);
+        const msg = (err && err.message) ? err.message : 'échec de synchronisation';
+        showToast('Erreur réseau Supabase : ' + msg, 'info');
+        return { ok: false, reason: msg };
+    }
 }
 
 /**
@@ -2022,7 +2098,7 @@ function setLocalArticles(articles) {
 
 function ensureArticlesEditableSnapshot() {
     if (!Array.isArray(currentArticlesData) || currentArticlesData.length === 0) return;
-    setLocalArticles(currentArticlesData);
+    syncArticlesLocalFromCurrent();
 }
 
 function normalizeArticleCategory(category) {
@@ -2206,32 +2282,70 @@ function exportArticles() {
  * @param {Object} article - Données de l'article
  * @returns {HTMLElement} - Élément HTML de l'article
  */
+function formatArticleRelativeDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const ts = date.getTime();
+    if (!Number.isFinite(ts)) return '';
+    const now = Date.now();
+    const diffMs = Math.max(0, now - ts);
+    const minutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(diffMs / 3600000);
+    const days = Math.floor(diffMs / 86400000);
+    const weeks = Math.floor(days / 7);
+    const isEn = currentLang === 'en';
+    if (minutes < 1) return isEn ? 'Just now' : 'À l\'instant';
+    if (minutes < 60) return isEn ? `${minutes} min ago` : `Il y a ${minutes} min`;
+    if (hours < 24) return isEn ? `${hours} hour${hours > 1 ? 's' : ''} ago` : `Il y a ${hours} heure${hours > 1 ? 's' : ''}`;
+    if (days < 7) return isEn ? `${days} day${days > 1 ? 's' : ''} ago` : `Il y a ${days} jour${days > 1 ? 's' : ''}`;
+    if (weeks < 5) return isEn ? `${weeks} week${weeks > 1 ? 's' : ''} ago` : `Il y a ${weeks} semaine${weeks > 1 ? 's' : ''}`;
+    return formatDate(dateString);
+}
+
 function createArticleItem(article, articleIndex) {
-    const item = document.createElement('div');
-    item.className = 'article-item';
-    
-    const readArticleText = (translations[currentLang] && translations[currentLang].articles && translations[currentLang].articles.readArticle) 
-        ? translations[currentLang].articles.readArticle 
-        : 'Lire l\'article';
+    const item = document.createElement('article');
+    item.className = 'article-item article-card';
+
     const hasInternalContent = !!getArticleInternalBody(article);
     const articleUrl = hasInternalContent ? getArticleShareUrl(article) : (article.link || '#');
-    const linkAttrs = hasInternalContent
-        ? `href="${articleUrl}" class="article-link article-link-internal" data-article-slug="${escapeAttr(getArticleCanonicalSlug(article))}"`
-        : `href="${article.link}" target="_blank" rel="noopener" class="article-link"`;
-    const authorLine = article.author ? `<p class="description-para"><strong>Par ${escapeHtml(article.author)}</strong></p>` : '';
-    const categoryLine = article.category ? `<span class="article-tool-tag">${escapeHtml(article.category)}</span>` : '';
-    const externalDescription = (article.type === 'external' && article.description)
-        ? `<p class="description-para">${escapeHtml(article.description)}</p>`
+    const titleSafe = escapeHtml(article.title || '');
+    const slugAttr = escapeAttr(getArticleCanonicalSlug(article));
+    const linkClass = hasInternalContent
+        ? 'article-card-link article-link-internal'
+        : 'article-card-link';
+    const linkTarget = hasInternalContent
+        ? `href="${escapeAttr(articleUrl)}" class="${linkClass}" data-article-slug="${slugAttr}"`
+        : `href="${escapeAttr(article.link || '#')}" class="${linkClass}" target="_blank" rel="noopener noreferrer"`;
+
+    let mediaHTML = '<div class="article-card-media">';
+    if (article.image) {
+        mediaHTML += `<img src="${escapeAttr(article.image)}" alt="${titleSafe}" class="article-card-image" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
+    }
+    mediaHTML += `<div class="article-card-placeholder" style="display: ${article.image ? 'none' : 'flex'};" aria-hidden="true"><i class="fas fa-newspaper"></i></div>`;
+    if (article.category) {
+        mediaHTML += `<span class="article-card-badge">${escapeHtml(article.category)}</span>`;
+    }
+    mediaHTML += '</div>';
+
+    const authorPrefix = currentLang === 'en' ? 'By' : 'Par';
+    const metaParts = [];
+    if (article.author) {
+        metaParts.push(`<span class="article-card-author">${authorPrefix} ${escapeHtml(article.author)}</span>`);
+    }
+    if (article.date) {
+        metaParts.push(`<span class="article-card-date">${escapeHtml(formatArticleRelativeDate(article.date))}</span>`);
+    }
+    const metaHTML = metaParts.length
+        ? `<div class="article-card-meta">${metaParts.join('<span class="article-card-meta-sep" aria-hidden="true">·</span>')}</div>`
         : '';
-    /* Pas de couverture dans la liste : l’image ne charge qu’à l’ouverture du lecteur (openArticleReaderModal). */
+
     item.innerHTML = `
-        <h3 class="article-title">
-            <a href="${articleUrl}" ${hasInternalContent ? `data-article-slug="${escapeAttr(getArticleCanonicalSlug(article))}"` : 'target="_blank" rel="noopener"'}>${article.title}</a>
-        </h3>
-        ${categoryLine ? `<div class="article-tools">${categoryLine}</div>` : ''}
-        <div class="article-description description-block">${authorLine}${externalDescription}</div>
-        <a ${linkAttrs}>
-            ${readArticleText} <i class="fas fa-arrow-right"></i>
+        <a ${linkTarget}>
+            ${mediaHTML}
+            <div class="article-card-body">
+                <h3 class="article-card-title">${titleSafe}</h3>
+                ${metaHTML}
+            </div>
         </a>
     `;
     if (Number.isFinite(articleIndex)) {
@@ -3053,7 +3167,7 @@ function initArticleAdmin() {
     if (slugInput) slugInput.addEventListener('input', refreshArticleEditorPreview);
 
     if (addArticleForm) {
-        addArticleForm.addEventListener('submit', function(e) {
+        addArticleForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const title = document.getElementById('articleTitle').value;
             const author = document.getElementById('articleAuthor').value.trim();
@@ -3064,7 +3178,7 @@ function initArticleAdmin() {
             const image = (window.__articleImageDataUrl && String(window.__articleImageDataUrl).trim()) ? String(window.__articleImageDataUrl).trim() : null;
             const editingIndex = addArticleForm.dataset.editingIndex;
             const slug = editingIndex !== undefined && editingIndex !== ''
-                ? getArticleCanonicalSlug(getLocalArticles()[parseInt(editingIndex, 10)] || { title: title })
+                ? getArticleCanonicalSlug(currentArticlesData[parseInt(editingIndex, 10)] || { title: title })
                 : slugifyArticleTitle(title);
             const articleType = typeExternal && typeExternal.checked ? 'external' : 'direct';
             const directContent = articleType === 'direct' ? content : null;
@@ -3092,14 +3206,15 @@ function initArticleAdmin() {
                 image: image,
                 date: publishedAt
             };
+            const next = currentArticlesData.slice();
             if (editingIndex !== undefined && editingIndex !== '') {
-                const articles = getLocalArticles();
-                const old = articles[parseInt(editingIndex, 10)] || {};
+                const idx = parseInt(editingIndex, 10);
+                const old = next[idx] || {};
                 article.slug = old.slug ? normalizeArticleSlug(old.slug) : article.slug;
                 if (!article.image && old.image) article.image = old.image;
                 if (old.date) article.date = old.date;
-                articles[parseInt(editingIndex, 10)] = article;
-                localStorage.setItem('portfolio-articles', JSON.stringify(articles));
+                if (idx >= 0 && idx < next.length) next[idx] = article;
+                else next.push(article);
                 addArticleForm.dataset.editingIndex = '';
                 addArticleForm.reset();
                 window.__articleImageDataUrl = '';
@@ -3107,15 +3222,16 @@ function initArticleAdmin() {
                 if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-plus"></i> Ajouter l\'article';
                 showToast('Article mis à jour !', 'success');
             } else {
-                saveLocalArticle(article);
+                next.unshift(article);
                 addArticleForm.reset();
                 window.__articleImageDataUrl = '';
                 showToast('Article ajouté avec succès !', 'success');
             }
+            setCurrentArticlesDataset(next);
             refreshArticleEditorPreview();
+            await notifySupabasePortfolioPersist('articles');
             loadArticles();
             updateLocalArticlesList();
-            notifySupabasePortfolioPersist('articles');
             if (adminPanel) adminPanel.style.display = 'none';
             scrollToSection('articles');
         });
@@ -3267,14 +3383,14 @@ function refreshArticleEditorPreview() {
 function updateLocalArticlesList() {
     const localArticlesList = document.getElementById('localArticlesList');
     if (!localArticlesList) return;
-    
-    const articles = getLocalArticles();
-    
+
+    const articles = currentArticlesData;
+
     if (articles.length === 0) {
-        localArticlesList.innerHTML = '<p style="color: var(--text-secondary);">Aucun article ajouté localement.</p>';
+        localArticlesList.innerHTML = '<p style="color: var(--text-secondary);">Aucun article disponible.</p>';
         return;
     }
-    
+
     localArticlesList.innerHTML = articles.map((article, index) => `
         <div class="admin-article-item">
             <div class="admin-article-info">
@@ -3298,8 +3414,7 @@ function updateLocalArticlesList() {
     localArticlesList.querySelectorAll('.btn-edit-article').forEach(btn => {
         btn.addEventListener('click', function() {
             const index = parseInt(this.getAttribute('data-index'), 10);
-            const articles = getLocalArticles();
-            const a = articles[index];
+            const a = currentArticlesData[index];
             if (!a) return;
             document.getElementById('articleTitle').value = a.title || '';
             document.getElementById('articleAuthor').value = a.author || '';
@@ -3320,19 +3435,19 @@ function updateLocalArticlesList() {
         });
     });
     localArticlesList.querySelectorAll('.btn-remove-article').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', async function() {
             const index = parseInt(this.getAttribute('data-index'), 10);
             if (addArticleForm && addArticleForm.dataset.editingIndex === String(index)) {
                 addArticleForm.reset();
                 addArticleForm.dataset.editingIndex = '';
                 if (articleSubmitBtn) articleSubmitBtn.innerHTML = '<i class="fas fa-plus"></i> Ajouter l\'article';
             }
-            const articles = getLocalArticles();
-            articles.splice(index, 1);
-            setLocalArticles(articles);
+            const next = currentArticlesData.slice();
+            next.splice(index, 1);
+            setCurrentArticlesDataset(next);
+            await notifySupabasePortfolioPersist('articles');
             loadArticles();
             updateLocalArticlesList();
-            notifySupabasePortfolioPersist('articles');
             showToast('Article supprimé.', 'info');
         });
     });
@@ -3356,6 +3471,7 @@ function initProjectAdmin() {
     if (adminBtn && adminPanel) {
         adminBtn.addEventListener('click', function() {
             adminPanel.style.display = 'flex';
+            ensureProjectsEditableSnapshot();
             if (addProjectForm) {
                 addProjectForm.dataset.editingIndex = '';
                 addProjectForm.reset();
@@ -3381,7 +3497,7 @@ function initProjectAdmin() {
     }
     
     if (addProjectForm) {
-        addProjectForm.addEventListener('submit', function(e) {
+        addProjectForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const title = document.getElementById('projectTitle').value;
             const description = document.getElementById('projectDescription').value;
@@ -3395,23 +3511,25 @@ function initProjectAdmin() {
             const cardano = document.getElementById('projectCardano').checked;
             const project = { title: title, description: description, contributions: contributions, image: image, technologies: technologies, github: github, demo: demo, about: about, cardano: cardano };
             const editingIndex = addProjectForm.dataset.editingIndex;
+            const next = currentProjectsData.slice();
             if (editingIndex !== undefined && editingIndex !== '') {
-                const projects = getLocalProjects();
-                projects[parseInt(editingIndex, 10)] = project;
-                localStorage.setItem('portfolio-projects', JSON.stringify(projects));
+                const idx = parseInt(editingIndex, 10);
+                if (idx >= 0 && idx < next.length) next[idx] = project;
+                else next.push(project);
                 addProjectForm.dataset.editingIndex = '';
                 addProjectForm.reset();
                 const submitBtn = document.getElementById('projectSubmitBtn');
                 if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-plus"></i> Ajouter le projet';
                 showToast('Projet mis à jour !', 'success');
             } else {
-                saveLocalProject(project);
+                next.unshift(project);
                 addProjectForm.reset();
                 showToast('Projet ajouté avec succès !', 'success');
             }
+            setCurrentProjectsDataset(next);
+            await notifySupabasePortfolioPersist('projects');
             loadProjects();
             updateLocalProjectsList();
-            notifySupabasePortfolioPersist('projects');
             if (adminPanel) adminPanel.style.display = 'none';
             scrollToSection('projets');
         });
@@ -3442,11 +3560,11 @@ function initProjectAdmin() {
 function updateLocalProjectsList() {
     const localProjectsList = document.getElementById('localProjectsList');
     if (!localProjectsList) return;
-    
-    const projects = getLocalProjects();
-    
+
+    const projects = currentProjectsData;
+
     if (projects.length === 0) {
-        localProjectsList.innerHTML = '<p style="color: var(--text-secondary);">Aucun projet ajouté localement.</p>';
+        localProjectsList.innerHTML = '<p style="color: var(--text-secondary);">Aucun projet disponible.</p>';
         return;
     }
     
@@ -3473,8 +3591,7 @@ function updateLocalProjectsList() {
     localProjectsList.querySelectorAll('.btn-edit-project').forEach(btn => {
         btn.addEventListener('click', function() {
             const index = parseInt(this.getAttribute('data-index'), 10);
-            const projects = getLocalProjects();
-            const p = projects[index];
+            const p = currentProjectsData[index];
             if (!p) return;
             document.getElementById('projectTitle').value = p.title || '';
             document.getElementById('projectDescription').value = p.description || '';
@@ -3490,19 +3607,19 @@ function updateLocalProjectsList() {
         });
     });
     localProjectsList.querySelectorAll('.btn-remove-project').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', async function() {
             const index = parseInt(this.getAttribute('data-index'), 10);
             if (addProjectForm && addProjectForm.dataset.editingIndex === String(index)) {
                 addProjectForm.reset();
                 addProjectForm.dataset.editingIndex = '';
                 if (projectSubmitBtn) projectSubmitBtn.innerHTML = '<i class="fas fa-plus"></i> Ajouter le projet';
             }
-            const projects = getLocalProjects();
-            projects.splice(index, 1);
-            localStorage.setItem('portfolio-projects', JSON.stringify(projects));
+            const next = currentProjectsData.slice();
+            next.splice(index, 1);
+            setCurrentProjectsDataset(next);
+            await notifySupabasePortfolioPersist('projects');
             loadProjects();
             updateLocalProjectsList();
-            notifySupabasePortfolioPersist('projects');
             showToast('Projet supprimé.', 'info');
         });
     });
@@ -3523,6 +3640,7 @@ function initExperienceAdmin() {
     if (adminBtn && adminPanel) {
         adminBtn.addEventListener('click', function() {
             adminPanel.style.display = 'flex';
+            ensureExperiencesEditableSnapshot();
             if (form) {
                 form.dataset.editingIndex = '';
                 form.reset();
@@ -3543,7 +3661,7 @@ function initExperienceAdmin() {
         });
     }
     if (form) {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             const experience = {
                 title: document.getElementById('experienceTitle').value,
@@ -3553,23 +3671,25 @@ function initExperienceAdmin() {
                 link: document.getElementById('experienceLink').value.trim() || null
             };
             const editingIndex = form.dataset.editingIndex;
+            const next = currentExperiencesData.slice();
             if (editingIndex !== undefined && editingIndex !== '') {
-                const list = getLocalExperiences();
-                list[parseInt(editingIndex, 10)] = experience;
-                localStorage.setItem('portfolio-experiences', JSON.stringify(list));
+                const idx = parseInt(editingIndex, 10);
+                if (idx >= 0 && idx < next.length) next[idx] = experience;
+                else next.push(experience);
                 form.dataset.editingIndex = '';
                 form.reset();
                 const submitBtn = document.getElementById('experienceSubmitBtn');
                 if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-plus"></i> Ajouter l\'expérience';
                 showToast('Expérience mise à jour !', 'success');
             } else {
-                saveLocalExperience(experience);
+                next.unshift(experience);
                 form.reset();
                 showToast('Expérience ajoutée avec succès !', 'success');
             }
+            setCurrentExperiencesDataset(next);
+            await notifySupabasePortfolioPersist('experiences');
             loadExperiences();
             updateLocalExperiencesList();
-            notifySupabasePortfolioPersist('experiences');
             if (adminPanel) adminPanel.style.display = 'none';
             scrollToSection('experiences');
         });
@@ -3595,9 +3715,9 @@ function initExperienceAdmin() {
 function updateLocalExperiencesList() {
     const list = document.getElementById('localExperiencesList');
     if (!list) return;
-    const experiences = getLocalExperiences();
+    const experiences = currentExperiencesData;
     if (experiences.length === 0) {
-        list.innerHTML = '<p style="color: var(--text-secondary);">Aucune expérience ajoutée localement.</p>';
+        list.innerHTML = '<p style="color: var(--text-secondary);">Aucune expérience disponible.</p>';
         return;
     }
     list.innerHTML = experiences.map((exp, i) => `
@@ -3622,8 +3742,7 @@ function updateLocalExperiencesList() {
     list.querySelectorAll('.btn-edit-experience').forEach(btn => {
         btn.addEventListener('click', function() {
             const index = parseInt(this.getAttribute('data-index'), 10);
-            const arr = getLocalExperiences();
-            const exp = arr[index];
+            const exp = currentExperiencesData[index];
             if (!exp) return;
             document.getElementById('experienceTitle').value = exp.title || '';
             document.getElementById('experienceOrganization').value = exp.organization || '';
@@ -3635,19 +3754,19 @@ function updateLocalExperiencesList() {
         });
     });
     list.querySelectorAll('.btn-remove-experience').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', async function() {
             const index = parseInt(this.getAttribute('data-index'), 10);
             if (addExperienceForm && addExperienceForm.dataset.editingIndex === String(index)) {
                 addExperienceForm.reset();
                 addExperienceForm.dataset.editingIndex = '';
                 if (experienceSubmitBtn) experienceSubmitBtn.innerHTML = '<i class="fas fa-plus"></i> Ajouter l\'expérience';
             }
-            const arr = getLocalExperiences();
-            arr.splice(index, 1);
-            localStorage.setItem('portfolio-experiences', JSON.stringify(arr));
+            const next = currentExperiencesData.slice();
+            next.splice(index, 1);
+            setCurrentExperiencesDataset(next);
+            await notifySupabasePortfolioPersist('experiences');
             loadExperiences();
             updateLocalExperiencesList();
-            notifySupabasePortfolioPersist('experiences');
             showToast('Expérience supprimée.', 'info');
         });
     });
@@ -3678,7 +3797,7 @@ function openQuickEditProject(index) {
     const form = document.getElementById('addProjectForm');
     const submitBtn = document.getElementById('projectSubmitBtn');
     if (!adminPanel || !form || !currentProjectsData[index]) return;
-    localStorage.setItem('portfolio-projects', JSON.stringify(currentProjectsData));
+    ensureProjectsEditableSnapshot();
     const p = currentProjectsData[index];
     document.getElementById('projectTitle').value = p.title || '';
     document.getElementById('projectDescription').value = p.description || '';
@@ -3700,7 +3819,7 @@ function openQuickEditArticle(index) {
     const form = document.getElementById('addArticleForm');
     const submitBtn = document.getElementById('articleSubmitBtn');
     if (!adminPanel || !form || !currentArticlesData[index]) return;
-    localStorage.setItem('portfolio-articles', JSON.stringify(currentArticlesData));
+    ensureArticlesEditableSnapshot();
     const a = currentArticlesData[index];
     document.getElementById('articleTitle').value = a.title || '';
     document.getElementById('articleAuthor').value = a.author || '';
@@ -3731,12 +3850,12 @@ function removeArticleAtIndex(index) {
     if (!confirm(`Supprimer "${title}" ?`)) return;
     const next = currentArticlesData.slice();
     next.splice(index, 1);
-    setLocalArticles(next);
-    currentArticlesData = next;
-    loadArticles();
-    updateLocalArticlesList();
-    notifySupabasePortfolioPersist('articles');
-    showToast('Article supprimé.', 'info');
+    setCurrentArticlesDataset(next);
+    notifySupabasePortfolioPersist('articles').then(function () {
+        loadArticles();
+        updateLocalArticlesList();
+        showToast('Article supprimé.', 'info');
+    });
 }
 
 function openQuickEditExperience(index) {
@@ -3744,7 +3863,7 @@ function openQuickEditExperience(index) {
     const form = document.getElementById('addExperienceForm');
     const submitBtn = document.getElementById('experienceSubmitBtn');
     if (!adminPanel || !form || !currentExperiencesData[index]) return;
-    localStorage.setItem('portfolio-experiences', JSON.stringify(currentExperiencesData));
+    ensureExperiencesEditableSnapshot();
     const exp = currentExperiencesData[index];
     document.getElementById('experienceTitle').value = exp.title || '';
     document.getElementById('experienceOrganization').value = exp.organization || '';
@@ -3818,7 +3937,7 @@ function initSkillsAdmin() {
     }
 
     if (form) {
-        form.addEventListener('submit', function (e) {
+        form.addEventListener('submit', async function (e) {
             e.preventDefault();
             const category = document.getElementById('skillCategory').value;
             const skill = {
@@ -3860,9 +3979,9 @@ function initSkillsAdmin() {
             form.reset();
             const submitBtn = document.getElementById('skillSubmitBtn');
             if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-plus"></i> Ajouter la compétence';
+            await notifySupabasePortfolioPersist('skills');
             loadSkills();
             updateLocalSkillsList();
-            notifySupabasePortfolioPersist('skills');
             if (adminPanel) adminPanel.style.display = 'none';
             scrollToSection('competences');
         });
@@ -3876,13 +3995,13 @@ function initSkillsAdmin() {
     }
 
     if (clearBtn) {
-        clearBtn.addEventListener('click', function () {
+        clearBtn.addEventListener('click', async function () {
             if (confirm('Effacer toutes les compétences ?')) {
                 clearLocalSkills();
                 currentSkillsData = createEmptySkillsData();
+                await notifySupabasePortfolioPersist('skills');
                 loadSkills();
                 updateLocalSkillsList();
-                notifySupabasePortfolioPersist('skills');
                 showToast('Compétences effacées.', 'info');
             }
         });
@@ -3947,7 +4066,7 @@ function updateLocalSkillsList() {
     });
 
     list.querySelectorAll('.btn-remove-skill').forEach(function (btn) {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', async function () {
             const category = this.getAttribute('data-category');
             const index = parseInt(this.getAttribute('data-index'), 10);
             const all = cloneSkillsData(currentSkillsData);
@@ -3961,9 +4080,9 @@ function updateLocalSkillsList() {
                 form.dataset.editingIndex = '';
                 if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-plus"></i> Ajouter la compétence';
             }
+            await notifySupabasePortfolioPersist('skills');
             loadSkills();
             updateLocalSkillsList();
-            notifySupabasePortfolioPersist('skills');
             showToast('Compétence supprimée.', 'info');
         });
     });
