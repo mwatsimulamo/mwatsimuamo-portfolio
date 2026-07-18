@@ -33,7 +33,8 @@ const CONTACT_EMAIL = 'mwatsimulamoolivier@gmail.com';
 const FORMSPREE_FORM_ID = 'mjgearjz';
 
 /** Nombre d'articles et d'expériences affichés par page (pagination). */
-const ITEMS_PER_PAGE = 4;
+const ARTICLES_PER_PAGE = 8;
+const EXPERIENCES_PER_PAGE = 4;
 const ARTICLE_CATEGORIES = [
     'Web3',
     'Cardano Blockchain',
@@ -858,7 +859,7 @@ async function mergeExperiencesFromSources() {
     } catch (e) {
         /* ignore */
     }
-    return [...getLocalExperiences(), ...fromFile];
+    return mergeExperiencesListsPreferLocal(getLocalExperiences(), fromFile);
 }
 
 async function mergeSkillsFromSources() {
@@ -1761,10 +1762,10 @@ function renderExperiencesPage(page) {
     const listEl = document.getElementById('experiencesList');
     if (!listEl || !listEl._allData) return;
     const all = listEl._allData;
-    const totalPages = Math.max(1, Math.ceil(all.length / ITEMS_PER_PAGE));
+    const totalPages = Math.max(1, Math.ceil(all.length / EXPERIENCES_PER_PAGE));
     const currentPage = Math.min(Math.max(1, page), totalPages);
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const slice = all.slice(start, start + ITEMS_PER_PAGE);
+    const start = (currentPage - 1) * EXPERIENCES_PER_PAGE;
+    const slice = all.slice(start, start + EXPERIENCES_PER_PAGE);
 
     listEl.innerHTML = '';
     slice.forEach((exp, i) => listEl.appendChild(createExperienceItem(exp, start + i)));
@@ -1848,7 +1849,7 @@ async function loadExperiences() {
                 console.warn('experiences.json non disponible.');
             }
             const local = getLocalExperiences();
-            all = [...local, ...fromFile];
+            all = mergeExperiencesListsPreferLocal(local, fromFile);
         }
         if (all.length === 0) {
             currentExperiencesData = [];
@@ -1914,6 +1915,33 @@ function exportExperiences() {
 }
 
 /**
+ * Fusionne expériences distantes et locales sans doublons (clé lien ou titre+org).
+ */
+function getExperienceDedupKey(exp) {
+    if (!exp || typeof exp !== 'object') return '';
+    const link = String(exp.link || '').trim().toLowerCase();
+    if (link && link !== '#') return 'link:' + link;
+    const title = String(exp.title || '').trim().toLowerCase();
+    const org = String(exp.organization || '').trim().toLowerCase();
+    return 'exp:' + title + '|' + org;
+}
+
+function mergeExperiencesListsPreferLocal(local, remote) {
+    const map = new Map();
+    (Array.isArray(remote) ? remote : []).forEach(function (e) {
+        if (!e || typeof e !== 'object') return;
+        map.set(getExperienceDedupKey(e), Object.assign({}, e));
+    });
+    (Array.isArray(local) ? local : []).forEach(function (e) {
+        if (!e || typeof e !== 'object') return;
+        const k = getExperienceDedupKey(e);
+        const prev = map.get(k);
+        map.set(k, prev ? Object.assign({}, prev, e) : Object.assign({}, e));
+    });
+    return Array.from(map.values());
+}
+
+/**
  * Icône Font Awesome selon le type d'expérience (heuristique sur titre + org).
  * @param {Object} exp
  * @returns {string}
@@ -1957,7 +1985,7 @@ function createExperienceItem(exp, expIndex) {
     item.setAttribute('role', 'listitem');
 
     const descId = 'experience-desc-' + expIndex;
-    const descriptionHtml = formatDescriptionAsParagraphs(exp.description);
+    const descriptionHtml = formatDescriptionAsParagraphs(sanitizeDisplayDashes(exp.description));
     const hasDescription = Boolean(exp.description && String(exp.description).trim());
     const readMoreText = getTranslationStringByPath('experiences.readMore') || 'En savoir plus';
     const visitText = getTranslationStringByPath('experiences.visitLink') || 'Visiter';
@@ -1965,10 +1993,10 @@ function createExperienceItem(exp, expIndex) {
     const indexLabel = String(expIndex + 1).padStart(2, '0');
 
     const orgHtml = exp.organization
-        ? `<span class="experience-org">${escapeHtml(exp.organization)}</span>`
+        ? `<span class="experience-org">${escapeHtml(sanitizeDisplayDashes(exp.organization))}</span>`
         : '';
     const periodHtml = exp.period
-        ? `<p class="experience-period"><i class="fas fa-calendar-alt" aria-hidden="true"></i><span>${escapeHtml(exp.period)}</span></p>`
+        ? `<p class="experience-period"><i class="fas fa-calendar-alt" aria-hidden="true"></i><span>${escapeHtml(sanitizeDisplayDashes(exp.period))}</span></p>`
         : '';
     const descHtml = hasDescription
         ? `<div class="experience-desc-wrap" data-collapsed="true">
@@ -1994,7 +2022,7 @@ function createExperienceItem(exp, expIndex) {
         <div class="experience-card-top">
             <div class="experience-card-icon" aria-hidden="true"><i class="${iconClass}"></i></div>
             <div class="experience-card-heading">
-                <h3 class="experience-title">${escapeHtml(exp.title)}</h3>
+                <h3 class="experience-title">${escapeHtml(sanitizeDisplayDashes(exp.title))}</h3>
                 ${orgHtml}
             </div>
         </div>
@@ -2031,10 +2059,10 @@ function renderArticlesPage(page) {
     const listEl = document.getElementById('articlesList');
     if (!listEl || !listEl._allData) return;
     const all = listEl._filteredData || listEl._allData;
-    const totalPages = Math.max(1, Math.ceil(all.length / ITEMS_PER_PAGE));
+    const totalPages = Math.max(1, Math.ceil(all.length / ARTICLES_PER_PAGE));
     const currentPage = Math.min(Math.max(1, page), totalPages);
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const slice = all.slice(start, start + ITEMS_PER_PAGE);
+    const start = (currentPage - 1) * ARTICLES_PER_PAGE;
+    const slice = all.slice(start, start + ARTICLES_PER_PAGE);
 
     listEl.innerHTML = '';
     slice.forEach((article) => {
@@ -2120,7 +2148,7 @@ async function loadArticles() {
             let jsonArticles = [];
             if (response.ok) jsonArticles = await response.json();
             const localArticles = getLocalArticles();
-            allArticles = [...localArticles, ...jsonArticles];
+            allArticles = mergeArticleListsPreferLocal(localArticles, jsonArticles);
         }
 
         if (allArticles.length === 0) {
@@ -2385,7 +2413,7 @@ function createArticleItem(article, articleIndex) {
 
     const hasInternalContent = !!getArticleInternalBody(article);
     const articleUrl = hasInternalContent ? getArticleShareUrl(article) : (article.link || '#');
-    const titleSafe = escapeHtml(article.title || '');
+    const titleSafe = escapeHtml(sanitizeDisplayDashes(article.title || ''));
     const slugAttr = escapeAttr(getArticleCanonicalSlug(article));
     const linkClass = hasInternalContent
         ? 'article-card-link article-link-internal'

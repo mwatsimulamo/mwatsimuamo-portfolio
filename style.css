@@ -1172,13 +1172,128 @@ body[data-theme='dark'] .scroll-indicator {
 }
 
 /* ============================================
-   SECTION À PROPOS (photo étroite + texte sur toute la largeur restante)
+   SECTION À PROPOS (bandeau texte, sans photo dupliquée)
    ============================================ */
 .about-section {
     position: relative;
-    --about-photo-max: min(320px, 100%);
+    padding-top: clamp(2rem, 5vw, 3.25rem);
+    padding-bottom: clamp(2rem, 5vw, 3.25rem);
 }
 
+.about-band {
+    position: relative;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: clamp(1.35rem, 3vw, 2rem);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid rgba(var(--primary-rgb), 0.1);
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.96), rgba(var(--primary-rgb), 0.03));
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.about-band-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: clamp(1rem, 2.5vw, 1.5rem);
+    align-items: start;
+    margin-bottom: clamp(1.25rem, 3vw, 1.75rem);
+}
+
+.about-band-accent {
+    width: 4px;
+    min-height: 100%;
+    align-self: stretch;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--primary-color), var(--accent-color));
+    box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.35);
+}
+
+.about-band-title {
+    text-align: left;
+    margin-bottom: 0.55rem;
+}
+
+.about-band-title::after,
+.about-band-title::before {
+    left: 0;
+    transform: none;
+    width: 48px;
+}
+
+.about-band-lead {
+    margin: 0;
+    font-size: clamp(1rem, 0.35vw + 0.95rem, 1.12rem);
+    line-height: 1.7;
+    color: var(--text-primary);
+    font-weight: 500;
+    text-align: left;
+}
+
+.about-band-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.85rem, 2vw, 1.25rem);
+}
+
+.about-band-grid .about-text {
+    margin: 0;
+    padding: 0.95rem 1rem;
+    border-radius: var(--border-radius);
+    background: rgba(var(--primary-rgb), 0.03);
+    border: 1px solid rgba(var(--primary-rgb), 0.08);
+    font-size: clamp(0.94rem, 0.2vw + 0.9rem, 1rem);
+    line-height: 1.72;
+    color: var(--text-secondary);
+    text-align: left;
+    hyphens: auto;
+}
+
+.about-band-grid .about-text--wide {
+    grid-column: 1 / -1;
+}
+
+body[data-theme='dark'] .about-band {
+    background: linear-gradient(160deg, rgba(13, 30, 54, 0.82), rgba(10, 22, 40, 0.92));
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+body[data-theme='dark'] .about-band-grid .about-text {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 768px) {
+    .about-band-head {
+        grid-template-columns: 1fr;
+    }
+
+    .about-band-accent {
+        width: 100%;
+        height: 4px;
+        min-height: 4px;
+    }
+
+    .about-band-title {
+        text-align: center;
+    }
+
+    .about-band-title::after,
+    .about-band-title::before {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .about-band-lead {
+        text-align: center;
+    }
+
+    .about-band-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Legacy split (conservé pour compatibilité admin / anciens styles) */
 .about-split {
     display: grid;
     grid-template-columns: minmax(0, var(--about-photo-max)) minmax(0, 1fr);

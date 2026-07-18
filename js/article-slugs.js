@@ -48,20 +48,26 @@ function getArticleShareUrl(article) {
     return `${getShareBaseUrl()}?article=${encodeURIComponent(slug)}`;
 }
 
+function getArticleDedupKey(article) {
+    if (!article || typeof article !== 'object') return '';
+    const link = String(article.link || '').trim().toLowerCase();
+    if (link && link !== '#') return 'link:' + link;
+    return 'slug:' + getArticleCanonicalSlug(article);
+}
+
 /**
  * Fusionne articles distants (ex. Supabase) et articles locaux (localStorage).
- * Même slug canonique : le local écrase le distant.
+ * Même slug ou même lien : le local écrase le distant.
  */
 function mergeArticleListsPreferLocal(local, remote) {
     const map = new Map();
     (Array.isArray(remote) ? remote : []).forEach(function (a) {
         if (!a || typeof a !== 'object') return;
-        const k = getArticleCanonicalSlug(a);
-        map.set(k, Object.assign({}, a));
+        map.set(getArticleDedupKey(a), Object.assign({}, a));
     });
     (Array.isArray(local) ? local : []).forEach(function (a) {
         if (!a || typeof a !== 'object') return;
-        const k = getArticleCanonicalSlug(a);
+        const k = getArticleDedupKey(a);
         const prev = map.get(k);
         map.set(k, prev ? Object.assign({}, prev, a) : Object.assign({}, a));
     });

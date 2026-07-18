@@ -27,8 +27,8 @@
       "title": "Quelque chose sur moi",
       "envLead": "Diplômé en Environnement et Développement durable, passionné par le climat et les grands enjeux environnementaux.",
       "text1": "Je suis UI/UX Developer et Junior Web3 Developer, spécialisé dans la blockchain Cardano : je combine technologies web modernes et innovation blockchain pour des expériences numériques intuitives et utiles.",
-      "text2": "Au-delà du développement, je contribue à la croissance de l'écosystème Cardano et Web3 en RD Congo — formation, communauté, rédaction technique — en reliant Web2 et Web3 avec une attention aux impacts et à une innovation responsable.",
-      "text3": "Le climat et le développement durable nourrissent ma façon de voir la tech : j'aspire à des solutions concrètes, des communautés plus fortes, et un apprentissage continu — entre protection de l'environnement et systèmes décentralisés."
+      "text2": "Au-delà du développement, je contribue à la croissance de l'écosystème Cardano et Web3 en RD Congo, formation, communauté, rédaction technique, en reliant Web2 et Web3 avec une attention aux impacts et à une innovation responsable.",
+      "text3": "Le climat et le développement durable nourrissent ma façon de voir la tech : j'aspire à des solutions concrètes, des communautés plus fortes, et un apprentissage continu, entre protection de l'environnement et systèmes décentralisés."
     },
     "services": {
       "title": "Services",
@@ -68,7 +68,7 @@
     },
     "experiences": {
       "title": "Expériences",
-      "intro": "Parcours professionnel et engagements au sein de l'écosystème Cardano et Web3 — chaque rôle raconte une facette de mon expertise.",
+      "intro": "Parcours professionnel et engagements au sein de l'écosystème Cardano et Web3, chaque rôle raconte une facette de mon expertise.",
       "loading": "Chargement des expériences...",
       "noExperiences": "Aucune expérience renseignée pour le moment.",
       "readMore": "En savoir plus",
@@ -156,9 +156,9 @@
     "about": {
       "title": "Something About Me",
       "envLead": "I hold a degree in Environment and Sustainable Development, and I care deeply about the climate and environmental issues.",
-      "text1": "I'm also a UI/UX Developer and Junior Web3 Developer focused on the Cardano blockchain—bringing together modern web practices and blockchain innovation to build intuitive, purposeful digital experiences.",
-      "text2": "Beyond coding, I help grow the Cardano and Web3 ecosystem in DR Congo through training, community work and technical writing—connecting Web2 and Web3 with an eye on impact and responsible innovation.",
-      "text3": "Climate and sustainability shape how I think about technology: I aim for tangible outcomes, stronger communities, and continuous learning—bridging environmental stewardship and decentralized systems."
+      "text1": "I'm also a UI/UX Developer and Junior Web3 Developer focused on the Cardano blockchain, bringing together modern web practices and blockchain innovation to build intuitive, purposeful digital experiences.",
+      "text2": "Beyond coding, I help grow the Cardano and Web3 ecosystem in DR Congo through training, community work and technical writing, connecting Web2 and Web3 with an eye on impact and responsible innovation.",
+      "text3": "Climate and sustainability shape how I think about technology: I aim for tangible outcomes, stronger communities, and continuous learning, bridging environmental stewardship and decentralized systems."
     },
     "services": {
       "title": "Services",
@@ -198,7 +198,7 @@
     },
     "experiences": {
       "title": "Experience",
-      "intro": "Professional journey and commitments within the Cardano and Web3 ecosystem — each role reflects a facet of my expertise.",
+      "intro": "Professional journey and commitments within the Cardano and Web3 ecosystem, each role reflects a facet of my expertise.",
       "loading": "Loading experience...",
       "noExperiences": "No experience listed yet.",
       "readMore": "Learn more",

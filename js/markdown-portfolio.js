@@ -349,10 +349,25 @@ function markdownToHtml(md) {
 }
 
 /**
+ * Remplace les tirets longs (—, –) par une virgule pour l'affichage public.
+ */
+function sanitizeDisplayDashes(text) {
+    if (text == null) return '';
+    if (typeof text !== 'string') return String(text);
+    return text
+        .replace(/\s*[\u2014\u2013]\s*/g, ', ')
+        .replace(/,\s*,+/g, ', ')
+        .replace(/,\s+\./g, '.')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+}
+
+/**
  * Formate un texte description en HTML avec paragraphes, listes et formatage (gras, italique, souligné).
  */
 function formatDescriptionAsParagraphs(description) {
     if (!description || typeof description !== 'string') return '';
+    description = sanitizeDisplayDashes(description);
     const escape = (s) => String(s)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
