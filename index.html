@@ -12,12 +12,19 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=Nunito:wght@300;400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
     
     <!-- Styles personnalisés -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Indicateur de progression de défilement (scroll) -->
+    <div id="scrollProgressBar" class="scroll-progress-bar" aria-hidden="true"></div>
+
+    <!-- Effets d'arrière-plan de lueurs d'ambiance (orbes lumineux) -->
+    <div class="ambient-glow ambient-glow-1" aria-hidden="true"></div>
+    <div class="ambient-glow ambient-glow-2" aria-hidden="true"></div>
+
     <!-- En-tête : barre contact + navigation flottante (design type « pilule ») -->
     <header class="site-header" id="siteHeader">
         <div class="preheader" aria-label="Contact rapide">
@@ -155,17 +162,29 @@
         </div>
     </section>
 
-    <!-- Section Expériences -->
-    <section id="experiences" class="section">
+    <!-- Section Expériences (cartes premium + descriptions repliables) -->
+    <section id="experiences" class="section section-alt experiences-section">
         <div class="container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
-                <h2 class="section-title" data-i18n="experiences.title" style="margin-bottom: 0;">Expériences</h2>
-                <button class="btn btn-secondary admin-only" id="adminExperienceBtn" style="display: none;">
-                    <i class="fas fa-cog"></i> Administration
-                </button>
-            </div>
-            <div class="experiences-list" id="experiencesList">
-                <div class="loading" data-i18n="experiences.loading">Chargement des expériences...</div>
+            <header class="experiences-section-head">
+                <div class="experiences-head-copy">
+                    <div class="experiences-head-deco" aria-hidden="true">
+                        <span class="experiences-shape experiences-shape--navy"></span>
+                        <span class="experiences-shape experiences-shape--teal"></span>
+                    </div>
+                    <h2 class="section-title experiences-section-title" data-i18n="experiences.title">Expériences</h2>
+                    <p class="experiences-intro" data-i18n="experiences.intro">Parcours professionnel et engagements au sein de l'écosystème Cardano et Web3 — chaque rôle raconte une facette de mon expertise.</p>
+                </div>
+                <div class="experiences-head-side">
+                    <button class="btn btn-secondary admin-only" id="adminExperienceBtn" type="button" style="display: none;">
+                        <i class="fas fa-cog"></i> Administration
+                    </button>
+                </div>
+            </header>
+            <div class="experiences-stage">
+                <div class="experiences-timeline-line" aria-hidden="true"></div>
+                <div class="experiences-list" id="experiencesList" role="list">
+                    <div class="loading" data-i18n="experiences.loading">Chargement des expériences...</div>
+                </div>
             </div>
         </div>
     </section>

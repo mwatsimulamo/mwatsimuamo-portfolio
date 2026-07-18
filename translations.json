@@ -68,8 +68,12 @@
     },
     "experiences": {
       "title": "Expériences",
+      "intro": "Parcours professionnel et engagements au sein de l'écosystème Cardano et Web3 — chaque rôle raconte une facette de mon expertise.",
       "loading": "Chargement des expériences...",
       "noExperiences": "Aucune expérience renseignée pour le moment.",
+      "readMore": "En savoir plus",
+      "readLess": "Réduire",
+      "visitLink": "Visiter",
       "previous": "Précédent",
       "next": "Suivant"
     },
@@ -194,8 +198,12 @@
     },
     "experiences": {
       "title": "Experience",
+      "intro": "Professional journey and commitments within the Cardano and Web3 ecosystem — each role reflects a facet of my expertise.",
       "loading": "Loading experience...",
       "noExperiences": "No experience listed yet.",
+      "readMore": "Learn more",
+      "readLess": "Show less",
+      "visitLink": "Visit",
       "previous": "Previous",
       "next": "Next"
     },

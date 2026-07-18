@@ -1914,25 +1914,102 @@ function exportExperiences() {
 }
 
 /**
+ * Icône Font Awesome selon le type d'expérience (heuristique sur titre + org).
+ * @param {Object} exp
+ * @returns {string}
+ */
+function getExperienceIconClass(exp) {
+    const hay = ((exp.title || '') + ' ' + (exp.organization || '')).toLowerCase();
+    if (/review|reviewer|milestone|audit/.test(hay)) return 'fas fa-clipboard-check';
+    if (/train|formateur|speaker|hub|education/.test(hay)) return 'fas fa-chalkboard-teacher';
+    if (/moderat|community|communaut/.test(hay)) return 'fas fa-users';
+    if (/cardano|catalyst|blockchain|web3|chain/.test(hay)) return 'fas fa-coins';
+    if (/design|ui|ux|front/.test(hay)) return 'fas fa-palette';
+    return 'fas fa-briefcase';
+}
+
+/**
+ * Bascule l'affichage de la description d'une carte expérience.
+ * @param {HTMLButtonElement} toggleBtn
+ */
+function toggleExperienceDescription(toggleBtn) {
+    const card = toggleBtn.closest('.experience-card');
+    const wrap = card && card.querySelector('.experience-desc-wrap');
+    if (!wrap) return;
+
+    const expanded = wrap.classList.toggle('is-expanded');
+    toggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+
+    const label = toggleBtn.querySelector('.experience-toggle-label');
+    if (label) {
+        label.textContent = expanded
+            ? (getTranslationStringByPath('experiences.readLess') || 'Réduire')
+            : (getTranslationStringByPath('experiences.readMore') || 'En savoir plus');
+    }
+}
+
+/**
  * Crée un élément DOM pour une expérience
  */
 function createExperienceItem(exp, expIndex) {
-    const item = document.createElement('div');
-    item.className = 'experience-item';
-    const period = exp.period ? `<p class="experience-period"><i class="fas fa-calendar-alt"></i> ${exp.period}</p>` : '';
-    const link = exp.link
-        ? `<a href="${exp.link}" target="_blank" rel="noopener" class="experience-link"><i class="fas fa-external-link-alt"></i> En savoir plus</a>`
-        : '';
+    const item = document.createElement('article');
+    item.className = 'experience-card';
+    item.setAttribute('role', 'listitem');
+
+    const descId = 'experience-desc-' + expIndex;
     const descriptionHtml = formatDescriptionAsParagraphs(exp.description);
+    const hasDescription = Boolean(exp.description && String(exp.description).trim());
+    const readMoreText = getTranslationStringByPath('experiences.readMore') || 'En savoir plus';
+    const visitText = getTranslationStringByPath('experiences.visitLink') || 'Visiter';
+    const iconClass = getExperienceIconClass(exp);
+    const indexLabel = String(expIndex + 1).padStart(2, '0');
+
+    const orgHtml = exp.organization
+        ? `<span class="experience-org">${escapeHtml(exp.organization)}</span>`
+        : '';
+    const periodHtml = exp.period
+        ? `<p class="experience-period"><i class="fas fa-calendar-alt" aria-hidden="true"></i><span>${escapeHtml(exp.period)}</span></p>`
+        : '';
+    const descHtml = hasDescription
+        ? `<div class="experience-desc-wrap" data-collapsed="true">
+                <div class="experience-desc-inner">
+                    <div class="experience-description description-block" id="${descId}">${descriptionHtml}</div>
+                </div>
+           </div>
+           <button type="button" class="experience-toggle" aria-expanded="false" aria-controls="${descId}">
+                <span class="experience-toggle-label">${escapeHtml(readMoreText)}</span>
+                <i class="fas fa-plus experience-toggle-icon" aria-hidden="true"></i>
+           </button>`
+        : '';
+    const linkHtml = exp.link
+        ? `<a href="${escapeAttr(exp.link)}" target="_blank" rel="noopener" class="experience-link">
+                <span>${escapeHtml(visitText)}</span>
+                <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i>
+           </a>`
+        : '';
+
     item.innerHTML = `
-        <div class="experience-header">
-            <h3 class="experience-title">${exp.title}</h3>
-            ${exp.organization ? `<span class="experience-org">${exp.organization}</span>` : ''}
+        <div class="experience-card-glow" aria-hidden="true"></div>
+        <span class="experience-card-index" aria-hidden="true">${indexLabel}</span>
+        <div class="experience-card-top">
+            <div class="experience-card-icon" aria-hidden="true"><i class="${iconClass}"></i></div>
+            <div class="experience-card-heading">
+                <h3 class="experience-title">${escapeHtml(exp.title)}</h3>
+                ${orgHtml}
+            </div>
         </div>
-        ${period}
-        <div class="experience-description description-block">${descriptionHtml}</div>
-        ${link}
+        ${periodHtml}
+        ${descHtml}
+        <div class="experience-card-footer">${linkHtml}</div>
     `;
+
+    const toggle = item.querySelector('.experience-toggle');
+    if (toggle) {
+        toggle.addEventListener('click', function () {
+            toggleExperienceDescription(toggle);
+        });
+    }
+
     if (Number.isFinite(expIndex)) {
         item.insertAdjacentHTML('beforeend', `
             <button type="button" class="inline-edit-btn admin-only" data-entity="experience" data-index="${expIndex}" style="display:none;">
@@ -2775,7 +2852,7 @@ function createSkillItem(skill) {
  */
 function initScrollAnimations() {
     // Sélectionner tous les éléments à animer
-    const animatedElements = document.querySelectorAll('.section, .skill-category, .project-card, .article-item, .experience-item, .service-card');
+    const animatedElements = document.querySelectorAll('.section, .skill-category, .project-card, .article-item, .experience-card, .service-card');
     
     
     // Créer un Intersection Observer pour détecter quand les éléments entrent dans la vue
@@ -2799,8 +2876,8 @@ function initScrollAnimations() {
                         entry.target.style.animation = isEven 
                             ? 'slideInLeft 0.6s ease forwards' 
                             : 'slideInRight 0.6s ease forwards';
-                    } else if (entry.target.classList.contains('experience-item')) {
-                        entry.target.style.animation = 'slideInLeft 0.6s ease forwards';
+                    } else if (entry.target.classList.contains('experience-card')) {
+                        entry.target.style.animation = 'fadeInUp 0.55s ease forwards';
                     }
                 }, index * 100);
                 
