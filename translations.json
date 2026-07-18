@@ -19,7 +19,8 @@
         "Databases Designer & Manager",
         "Réviseur des projets Web2 & Web3",
         "Créateur de contenus Web3 & formateur",
-        "Blockchains Ambassador & plaidoyer"
+        "Blockchains Ambassador & plaidoyer",
+        "Opérateur & gestionnaire de stakepools (Safrochain)"
       ],
       "downloadCv": "Télécharger le CV"
     },
@@ -54,6 +55,10 @@
         "ambassador": {
           "title": "Blockchains Ambassador",
           "desc": "Plaidoyer et représentation autour de plusieurs blockchains, avec un ancrage fort sur Cardano et l’écosystème ouvert."
+        },
+        "stakepool": {
+          "title": "Stakepool Safrochain & infrastructure",
+          "desc": "Setup VPS, déploiement et maintenance du nœud Safrochain, gestion et monitoring de votre stakepool."
         }
       }
     },
@@ -149,7 +154,8 @@
         "Databases Designer & Manager",
         "Web2 & Web3 Projects Reviewer",
         "Web3 Contents Creator & Trainer",
-        "Blockchains Ambassador & Advocate"
+        "Blockchains Ambassador & Advocate",
+        "Stakepool Operator & Manager (Safrochain)"
       ],
       "downloadCv": "Download Resume"
     },
@@ -184,6 +190,10 @@
         "ambassador": {
           "title": "Blockchains Ambassador",
           "desc": "Advocacy and representation across multiple blockchains, with a strong anchor on Cardano and open ecosystems."
+        },
+        "stakepool": {
+          "title": "Safrochain stakepool & infrastructure",
+          "desc": "VPS setup, Safrochain node deployment and maintenance, stakepool management and monitoring."
         }
       }
     },

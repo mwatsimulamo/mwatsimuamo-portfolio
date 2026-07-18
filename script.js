@@ -561,6 +561,7 @@ function initAdminGate() {
  */
 function applyTheme(theme) {
     const safeTheme = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', safeTheme);
     document.body.setAttribute('data-theme', safeTheme);
     localStorage.setItem(THEME_STORAGE_KEY, safeTheme);
 
@@ -585,8 +586,7 @@ function applyTheme(theme) {
 function initThemeToggle() {
     const btn = document.getElementById('themeToggleBtn');
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+    const initialTheme = savedTheme === 'light' ? 'light' : 'dark';
 
     applyTheme(initialTheme);
 
@@ -837,7 +837,40 @@ async function mergeProjectsFromSources() {
     } catch (e) {
         /* ignore */
     }
-    return [...getLocalProjects(), ...fromFile];
+    return mergeProjectsListsPreferLocal(getLocalProjects(), fromFile);
+}
+
+function normalizeProjectKeyPart(str) {
+    return String(str || '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ');
+}
+
+function getProjectDedupKey(project) {
+    if (!project || typeof project !== 'object') return '';
+    const demo = String(project.demo || '').trim().toLowerCase();
+    if (demo && demo !== '#') return 'demo:' + demo;
+    const github = String(project.github || '').trim().toLowerCase();
+    if (github && github !== '#') return 'github:' + github;
+    return 'project:' + normalizeProjectKeyPart(project.title);
+}
+
+function mergeProjectsListsPreferLocal(local, remote) {
+    const map = new Map();
+    (Array.isArray(remote) ? remote : []).forEach(function (p) {
+        if (!p || typeof p !== 'object') return;
+        map.set(getProjectDedupKey(p), Object.assign({}, p));
+    });
+    (Array.isArray(local) ? local : []).forEach(function (p) {
+        if (!p || typeof p !== 'object') return;
+        const k = getProjectDedupKey(p);
+        const prev = map.get(k);
+        map.set(k, prev ? Object.assign({}, prev, p) : Object.assign({}, p));
+    });
+    return Array.from(map.values());
 }
 
 async function mergeArticlesFromSources() {
@@ -999,7 +1032,7 @@ async function loadProjects() {
             try {
                 const remote = await window.fetchPortfolioBody('projects');
                 if (Array.isArray(remote) && remote.length > 0) {
-                    allProjects = remote;
+                    allProjects = mergeProjectsListsPreferLocal(getLocalProjects(), remote);
                     usedSupabase = true;
                 }
             } catch (e) {
@@ -1017,7 +1050,7 @@ async function loadProjects() {
                 console.warn('Fichier projects.json non disponible, utilisation des projets locaux uniquement.');
             }
             const localProjects = getLocalProjects();
-            allProjects = [...localProjects, ...projectsFromFile];
+            allProjects = mergeProjectsListsPreferLocal(localProjects, projectsFromFile);
         }
         
         if (allProjects.length === 0) {
@@ -1029,9 +1062,10 @@ async function loadProjects() {
             return;
         }
         
-        currentProjectsData = allProjects.map(function (p) { return { ...p }; });
+        const deduped = mergeProjectsListsPreferLocal([], allProjects);
+        currentProjectsData = deduped.map(function (p) { return { ...p }; });
         projectsGrid.innerHTML = '';
-        allProjects.forEach(function(project, index) {
+        deduped.forEach(function(project, index) {
             const projectCard = createProjectCard(project, index);
             projectsGrid.appendChild(projectCard);
         });
@@ -1733,8 +1767,11 @@ function createProjectCard(project, projectIndex) {
     `;
     if (Number.isFinite(projectIndex)) {
         card.insertAdjacentHTML('beforeend', `
-            <button type="button" class="inline-edit-btn admin-only" data-entity="project" data-index="${projectIndex}" style="display:none;">
+            <button type="button" class="inline-edit-btn admin-only" data-entity="project" data-index="${projectIndex}" style="display:none;" title="Modifier">
                 <i class="fas fa-pen"></i>
+            </button>
+            <button type="button" class="inline-edit-btn inline-delete-btn admin-only" data-entity="project-delete" data-index="${projectIndex}" style="display:none;" title="Supprimer">
+                <i class="fas fa-trash"></i>
             </button>
         `);
     }
@@ -1833,7 +1870,7 @@ async function loadExperiences() {
             try {
                 const remote = await window.fetchPortfolioBody('experiences');
                 if (Array.isArray(remote) && remote.length > 0) {
-                    all = remote;
+                    all = mergeExperiencesListsPreferLocal(getLocalExperiences(), remote);
                     usedSupabase = true;
                 }
             } catch (e) {
@@ -1860,8 +1897,9 @@ async function loadExperiences() {
             listEl._allData = null;
             return;
         }
-        currentExperiencesData = all.map(function (e) { return { ...e }; });
-        listEl._allData = all;
+        const deduped = mergeExperiencesListsPreferLocal([], all);
+        currentExperiencesData = deduped.map(function (e) { return { ...e }; });
+        listEl._allData = deduped;
         renderExperiencesPage(1);
         refreshAdminOnlyVisibility();
     } catch (err) {
@@ -1894,7 +1932,7 @@ function exportExperiences() {
     fetch('experiences.json')
         .then(r => r.ok ? r.json() : [])
         .then(fromFile => {
-            const all = [...local, ...fromFile];
+            const all = mergeExperiencesListsPreferLocal(local, fromFile);
             const blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1917,13 +1955,24 @@ function exportExperiences() {
 /**
  * Fusionne expériences distantes et locales sans doublons (clé lien ou titre+org).
  */
+function normalizeExperienceKeyPart(str) {
+    return String(str || '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ');
+}
+
 function getExperienceDedupKey(exp) {
     if (!exp || typeof exp !== 'object') return '';
     const link = String(exp.link || '').trim().toLowerCase();
     if (link && link !== '#') return 'link:' + link;
-    const title = String(exp.title || '').trim().toLowerCase();
-    const org = String(exp.organization || '').trim().toLowerCase();
-    return 'exp:' + title + '|' + org;
+    const title = normalizeExperienceKeyPart(exp.title);
+    const org = normalizeExperienceKeyPart(exp.organization);
+    if (title && org) return 'exp:' + title + '|' + org;
+    if (title) return 'exp-title:' + title;
+    return 'exp-unknown';
 }
 
 function mergeExperiencesListsPreferLocal(local, remote) {
@@ -2040,8 +2089,11 @@ function createExperienceItem(exp, expIndex) {
 
     if (Number.isFinite(expIndex)) {
         item.insertAdjacentHTML('beforeend', `
-            <button type="button" class="inline-edit-btn admin-only" data-entity="experience" data-index="${expIndex}" style="display:none;">
+            <button type="button" class="inline-edit-btn admin-only" data-entity="experience" data-index="${expIndex}" style="display:none;" title="Modifier">
                 <i class="fas fa-pen"></i>
+            </button>
+            <button type="button" class="inline-edit-btn inline-delete-btn admin-only" data-entity="experience-delete" data-index="${expIndex}" style="display:none;" title="Supprimer">
+                <i class="fas fa-trash"></i>
             </button>
         `);
     }
@@ -3877,6 +3929,36 @@ function updateLocalExperiencesList() {
     });
 }
 
+function removeProjectAtIndex(index) {
+    if (!Array.isArray(currentProjectsData) || !currentProjectsData[index]) return;
+    const target = currentProjectsData[index];
+    const title = target && target.title ? String(target.title) : 'ce projet';
+    if (!confirm(`Supprimer "${title}" ?`)) return;
+    const next = currentProjectsData.slice();
+    next.splice(index, 1);
+    setCurrentProjectsDataset(next);
+    notifySupabasePortfolioPersist('projects').then(function () {
+        loadProjects();
+        updateLocalProjectsList();
+        showToast('Projet supprimé.', 'info');
+    });
+}
+
+function removeExperienceAtIndex(index) {
+    if (!Array.isArray(currentExperiencesData) || !currentExperiencesData[index]) return;
+    const target = currentExperiencesData[index];
+    const title = target && target.title ? String(target.title) : 'cette expérience';
+    if (!confirm(`Supprimer "${title}" ?`)) return;
+    const next = currentExperiencesData.slice();
+    next.splice(index, 1);
+    setCurrentExperiencesDataset(next);
+    notifySupabasePortfolioPersist('experiences').then(function () {
+        loadExperiences();
+        updateLocalExperiencesList();
+        showToast('Expérience supprimée.', 'info');
+    });
+}
+
 function initInlineAdminQuickEdit() {
     document.addEventListener('click', function (e) {
         const btn = e.target.closest('.inline-edit-btn');
@@ -3887,9 +3969,11 @@ function initInlineAdminQuickEdit() {
         const index = parseInt(btn.getAttribute('data-index'), 10);
         if (!Number.isFinite(index) || index < 0) return;
         if (entity === 'project') openQuickEditProject(index);
+        else if (entity === 'project-delete') removeProjectAtIndex(index);
         else if (entity === 'article') openQuickEditArticle(index);
         else if (entity === 'article-delete') removeArticleAtIndex(index);
         else if (entity === 'experience') openQuickEditExperience(index);
+        else if (entity === 'experience-delete') removeExperienceAtIndex(index);
         else if (entity === 'skill') {
             const category = btn.getAttribute('data-category');
             openQuickEditSkill(category, index);
@@ -4063,7 +4147,13 @@ function initSkillsAdmin() {
             if (editingCategory && editingIndex !== '') {
                 const idx = parseInt(editingIndex, 10);
                 if (SKILL_CATEGORIES.includes(editingCategory) && Number.isFinite(idx) && all[editingCategory][idx]) {
-                    all[editingCategory][idx] = skill;
+                    if (category !== editingCategory) {
+                        all[editingCategory].splice(idx, 1);
+                        if (!Array.isArray(all[category])) all[category] = [];
+                        all[category].push(skill);
+                    } else {
+                        all[editingCategory][idx] = skill;
+                    }
                     setLocalSkills(all);
                     currentSkillsData = cloneSkillsData(all);
                     showToast('Compétence mise à jour !', 'success');
