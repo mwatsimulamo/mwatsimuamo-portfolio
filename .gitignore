@@ -33,6 +33,9 @@ $RECYCLE.BIN/
 # Config Supabase locale (clés) — le dépôt contient supabase-config.example.js
 supabase-config.js
 
+# Supabase CLI (link local, cache)
+supabase/.temp/
+
 # Dépendances Node
 node_modules/
 npm-debug.log*

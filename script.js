@@ -48,6 +48,14 @@ const ARTICLE_CATEGORIES = [
 ];
 const SKILLS_STORAGE_KEY = 'portfolio-skills';
 const SKILL_CATEGORIES = ['frontend', 'backend', 'blockchain', 'tools', 'certifications'];
+const SKILL_CATEGORY_META = {
+    frontend: { icon: 'fas fa-paint-brush', labelKey: 'frontend' },
+    backend: { icon: 'fas fa-server', labelKey: 'backend' },
+    blockchain: { icon: 'fas fa-coins', labelKey: 'blockchain', cardano: true },
+    tools: { icon: 'fas fa-tools', labelKey: 'tools' },
+    certifications: { icon: 'fas fa-award', labelKey: 'certifications', certifications: true }
+};
+let activeSkillsCategory = null;
 let currentSkillsData = {
     frontend: [],
     backend: [],
@@ -565,6 +573,11 @@ function applyTheme(theme) {
     document.body.setAttribute('data-theme', safeTheme);
     localStorage.setItem(THEME_STORAGE_KEY, safeTheme);
 
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeColorMeta) {
+        themeColorMeta.setAttribute('content', safeTheme === 'dark' ? '#030f2e' : '#ffffff');
+    }
+
     const icon = document.getElementById('themeToggleIcon');
     const btn = document.getElementById('themeToggleBtn');
     if (icon) {
@@ -586,7 +599,7 @@ function applyTheme(theme) {
 function initThemeToggle() {
     const btn = document.getElementById('themeToggleBtn');
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    const initialTheme = savedTheme === 'light' ? 'light' : 'dark';
+    const initialTheme = savedTheme === 'dark' ? 'dark' : 'light';
 
     applyTheme(initialTheme);
 
@@ -614,10 +627,13 @@ document.addEventListener('DOMContentLoaded', function() {
     loadExperiences();
     loadArticles();
     loadSkills();
+    initSkillsHub();
     initContactForm();
+    initNewsletterForm();
     initCVPreview();
     checkProfileImage();
     initScrollAnimations();
+    initPortfolioBackground();
     initLanguageSelector();
     initArticleAdmin();
     initProjectAdmin();
@@ -2520,6 +2536,110 @@ function createArticleItem(article, articleIndex) {
 }
 
 // ============================================
+// NEWSLETTER
+// ============================================
+
+function getNewsletterText(key) {
+    const pack = translations[currentLang] && translations[currentLang].newsletter;
+    return pack && pack[key] ? pack[key] : '';
+}
+
+function updateNewsletterUiTexts() {
+    const input = document.getElementById('newsletterEmail');
+    if (input) {
+        input.placeholder = getNewsletterText('emailPlaceholder') || (currentLang === 'en' ? 'you@email.com' : 'votre@email.com');
+    }
+}
+
+function setNewsletterStatus(message, type) {
+    const statusEl = document.getElementById('newsletterStatus');
+    if (!statusEl) return;
+    statusEl.textContent = message || '';
+    statusEl.classList.remove('newsletter-status--success', 'newsletter-status--error');
+    if (type === 'success') statusEl.classList.add('newsletter-status--success');
+    if (type === 'error') statusEl.classList.add('newsletter-status--error');
+}
+
+/**
+ * Initialise le formulaire d'inscription à la newsletter (Supabase).
+ */
+function initNewsletterForm() {
+    const form = document.getElementById('newsletterForm');
+    if (!form || form.dataset.bound) return;
+    form.dataset.bound = '1';
+    updateNewsletterUiTexts();
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const emailInput = document.getElementById('newsletterEmail');
+        const submitBtn = document.getElementById('newsletterSubmitBtn');
+        const email = emailInput && emailInput.value ? emailInput.value.trim() : '';
+
+        if (!email || email.indexOf('@') < 1) {
+            setNewsletterStatus(getNewsletterText('invalid') || 'Adresse email invalide.', 'error');
+            return;
+        }
+
+        if (typeof window.subscribeNewsletterEmail !== 'function') {
+            setNewsletterStatus(getNewsletterText('unavailable') || 'Newsletter indisponible.', 'error');
+            return;
+        }
+
+        if (submitBtn) submitBtn.disabled = true;
+        setNewsletterStatus(getNewsletterText('sending') || 'Inscription en cours…', null);
+
+        const res = await window.subscribeNewsletterEmail(email, currentLang);
+
+        if (submitBtn) submitBtn.disabled = false;
+
+        if (!res || !res.ok) {
+            if (res && res.reason === 'no_client') {
+                setNewsletterStatus(getNewsletterText('unavailable') || 'Newsletter indisponible.', 'error');
+                return;
+            }
+            if (res && res.reason === 'table_missing') {
+                setNewsletterStatus(getNewsletterText('setupRequired') || 'Newsletter : table Supabase manquante.', 'error');
+                return;
+            }
+            setNewsletterStatus(getNewsletterText('error') || 'Erreur lors de l\'inscription.', 'error');
+            return;
+        }
+
+        if (res.already) {
+            setNewsletterStatus(getNewsletterText('already') || 'Déjà inscrit.', 'success');
+        } else {
+            setNewsletterStatus(getNewsletterText('success') || 'Inscription confirmée.', 'success');
+            form.reset();
+        }
+    });
+}
+
+/**
+ * Notifie les abonnés newsletter lors de la publication d'un nouvel article (admin + Edge Function).
+ */
+async function sendNewsletterForNewArticle(article) {
+    if (typeof window.notifyNewsletterNewArticle !== 'function') return null;
+
+    let shareUrl = typeof getArticleShareUrl === 'function' ? getArticleShareUrl(article) : '';
+    if (shareUrl && shareUrl.charAt(0) === '?') {
+        shareUrl = window.location.origin + window.location.pathname + shareUrl;
+    } else if (shareUrl && !/^https?:\/\//i.test(shareUrl)) {
+        shareUrl = window.location.origin + (shareUrl.charAt(0) === '/' ? '' : '/') + shareUrl;
+    }
+
+    const excerptSource = article.description || article.content || '';
+    const excerpt = String(excerptSource).replace(/\s+/g, ' ').trim().slice(0, 220);
+
+    return window.notifyNewsletterNewArticle({
+        title: article.title,
+        slug: article.slug,
+        url: shareUrl,
+        excerpt: excerpt,
+        author: article.author || ''
+    });
+}
+
+// ============================================
 // FORMULAIRE DE CONTACT
 // ============================================
 
@@ -2821,17 +2941,143 @@ function exportSkills() {
 }
 
 /**
+ * Libellé i18n d'une catégorie de compétences.
+ */
+function getSkillCategoryLabel(labelKey) {
+    const skillsT = translations[currentLang] && translations[currentLang].skills;
+    if (skillsT && skillsT[labelKey]) return skillsT[labelKey];
+    return labelKey;
+}
+
+/**
+ * Libellé du nombre de compétences (singulier / pluriel).
+ */
+function getSkillCountLabel(count) {
+    const skillsT = translations[currentLang] && translations[currentLang].skills;
+    const one = (skillsT && skillsT.skillOne) ? skillsT.skillOne : 'compétence';
+    const many = (skillsT && skillsT.skillMany) ? skillsT.skillMany : 'compétences';
+    return count + ' ' + (count <= 1 ? one : many);
+}
+
+/**
+ * Affiche la grille des catégories (vue principale).
+ */
+function renderSkillsCategoriesGrid(skillsData) {
+    const grid = document.getElementById('skillsCategoriesGrid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+    SKILL_CATEGORIES.forEach(function (categoryKey) {
+        const meta = SKILL_CATEGORY_META[categoryKey];
+        if (!meta) return;
+
+        const skills = skillsData[categoryKey] || [];
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'skill-category-card' + (meta.cardano ? ' skill-category-card--cardano' : '');
+        card.dataset.category = categoryKey;
+        card.setAttribute('role', 'listitem');
+        card.setAttribute('aria-label', getSkillCategoryLabel(meta.labelKey));
+
+        card.innerHTML =
+            '<span class="skill-category-card-icon"><i class="' + meta.icon + '" aria-hidden="true"></i></span>' +
+            '<span class="skill-category-card-title">' + escapeHtml(getSkillCategoryLabel(meta.labelKey)) + '</span>' +
+            '<span class="skill-category-card-count">' + escapeHtml(getSkillCountLabel(skills.length)) + '</span>' +
+            '<i class="fas fa-chevron-right skill-category-card-arrow" aria-hidden="true"></i>';
+
+        card.addEventListener('click', function () {
+            openSkillsCategory(categoryKey);
+        });
+
+        grid.appendChild(card);
+    });
+}
+
+/**
+ * Ouvre une catégorie et affiche ses compétences dans une carte type Cardano.
+ */
+function openSkillsCategory(categoryKey) {
+    if (!SKILL_CATEGORIES.includes(categoryKey)) return;
+
+    activeSkillsCategory = categoryKey;
+    const hub = document.getElementById('skillsCategoriesGrid');
+    const view = document.getElementById('skillsCategoryView');
+    if (hub) hub.hidden = true;
+    if (view) view.hidden = false;
+
+    renderSkillsCategoryPanel(categoryKey, currentSkillsData);
+    scrollToSection('competences');
+}
+
+/**
+ * Retour à la liste des catégories.
+ */
+function closeSkillsCategory() {
+    activeSkillsCategory = null;
+    const hub = document.getElementById('skillsCategoriesGrid');
+    const view = document.getElementById('skillsCategoryView');
+    if (hub) hub.hidden = false;
+    if (view) view.hidden = true;
+}
+
+/**
+ * Rendu des compétences d'une catégorie dans le panneau détaillé.
+ */
+function renderSkillsCategoryPanel(categoryKey, skillsData) {
+    const meta = SKILL_CATEGORY_META[categoryKey];
+    const panel = document.getElementById('skillsCategoryPanel');
+    const titleEl = document.getElementById('skillsCategoryPanelTitle');
+    const grid = document.getElementById('skillsCategoryPanelGrid');
+    if (!meta || !panel || !titleEl || !grid) return;
+
+    panel.classList.add('cardano-highlight');
+    grid.className = 'skills-grid' + (meta.certifications ? ' skills-grid--certifications' : '');
+
+    titleEl.innerHTML =
+        '<i class="' + meta.icon + '" aria-hidden="true"></i> ' +
+        '<span>' + escapeHtml(getSkillCategoryLabel(meta.labelKey)) + '</span>';
+
+    const skills = (skillsData && skillsData[categoryKey]) ? skillsData[categoryKey] : [];
+    if (!skills.length) {
+        const emptyMsg = (translations[currentLang] && translations[currentLang].skills && translations[currentLang].skills.emptyCategory)
+            ? translations[currentLang].skills.emptyCategory
+            : 'Aucune compétence dans cette catégorie.';
+        grid.innerHTML = '<p class="loading">' + escapeHtml(emptyMsg) + '</p>';
+        refreshAdminOnlyVisibility();
+        return;
+    }
+
+    grid.innerHTML = '';
+    skills.forEach(function (skill, index) {
+        const skillElement = createSkillItem(skill);
+        const wrap = document.createElement('div');
+        wrap.className = 'skill-admin-wrap';
+        wrap.appendChild(skillElement);
+        wrap.insertAdjacentHTML('beforeend',
+            '<button type="button" class="inline-edit-btn inline-edit-btn--skill admin-only" data-entity="skill" data-category="' + categoryKey + '" data-index="' + index + '" style="display:none;">' +
+            '<i class="fas fa-pen"></i></button>'
+        );
+        grid.appendChild(wrap);
+    });
+
+    refreshAdminOnlyVisibility();
+}
+
+/**
+ * Navigation catégories ↔ compétences.
+ */
+function initSkillsHub() {
+    const backBtn = document.getElementById('skillsBackBtn');
+    if (backBtn && !backBtn.dataset.bound) {
+        backBtn.dataset.bound = '1';
+        backBtn.addEventListener('click', closeSkillsCategory);
+    }
+}
+
+/**
  * Charge les compétences depuis skills.json et les affiche avec des barres de progression
  */
 async function loadSkills() {
-    const skillCategories = {
-        'skillsFrontend': 'frontend',
-        'skillsBackend': 'backend',
-        'skillsBlockchain': 'blockchain',
-        'skillsTools': 'tools',
-        'skillsCertifications': 'certifications'
-    };
-    
     try {
         let skillsData = null;
         let usedSupabase = false;
@@ -2851,43 +3097,28 @@ async function loadSkills() {
         }
         skillsData = normalizeSkillsData(skillsData);
         currentSkillsData = cloneSkillsData(skillsData);
-        
-        // Charger chaque catégorie
-        for (const [elementId, categoryKey] of Object.entries(skillCategories)) {
-            const container = document.getElementById(elementId);
-            if (!container) continue;
-            
-            const skills = skillsData[categoryKey];
-            if (!skills || skills.length === 0) {
-                container.innerHTML = '<p class="loading">Aucune compétence disponible.</p>';
-                continue;
-            }
-            
-            container.innerHTML = '';
-            skills.forEach((skill, index) => {
-                const skillElement = createSkillItem(skill);
-                const wrap = document.createElement('div');
-                wrap.className = 'skill-admin-wrap';
-                wrap.appendChild(skillElement);
-                wrap.insertAdjacentHTML('beforeend', `
-                    <button type="button" class="inline-edit-btn inline-edit-btn--skill admin-only" data-entity="skill" data-category="${categoryKey}" data-index="${index}" style="display:none;">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                `);
-                container.appendChild(wrap);
-            });
+
+        renderSkillsCategoriesGrid(currentSkillsData);
+
+        if (activeSkillsCategory && SKILL_CATEGORIES.includes(activeSkillsCategory)) {
+            renderSkillsCategoryPanel(activeSkillsCategory, currentSkillsData);
+        } else {
+            closeSkillsCategory();
         }
-        refreshAdminOnlyVisibility();
-        
+
     } catch (error) {
         console.error('Erreur lors du chargement des compétences:', error);
-        // Afficher un message d'erreur dans tous les conteneurs
-        Object.keys(skillCategories).forEach(elementId => {
-            const container = document.getElementById(elementId);
-            if (container) {
-                container.innerHTML = '<p class="loading" style="color: #ef4444;">Erreur lors du chargement des compétences.</p>';
-            }
-        });
+        const grid = document.getElementById('skillsCategoriesGrid');
+        const loadingMsg = (translations[currentLang] && translations[currentLang].skills && translations[currentLang].skills.loading)
+            ? translations[currentLang].skills.loading
+            : 'Chargement des compétences...';
+        if (grid) {
+            grid.innerHTML = '<p class="loading" style="color: #ef4444;">Erreur lors du chargement des compétences.</p>';
+        }
+        const panelGrid = document.getElementById('skillsCategoryPanelGrid');
+        if (panelGrid) {
+            panelGrid.innerHTML = '<p class="loading" style="color: #ef4444;">Erreur lors du chargement des compétences.</p>';
+        }
     }
 }
 
@@ -2924,6 +3155,40 @@ function createSkillItem(skill) {
 
 
 // ============================================
+// ARRIÈRE-PLAN UNIFIÉ (parallaxe au scroll)
+// ============================================
+
+/**
+ * Déplace subtilement les couches du fond selon le scroll (sans coutures entre sections).
+ */
+function initPortfolioBackground() {
+    var bg = document.querySelector('.portfolio-bg');
+    if (!bg) return;
+
+    var reducedMotion = false;
+    try {
+        reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (_e) { /* ignore */ }
+
+    var ticking = false;
+
+    function applyScrollShift() {
+        var y = window.scrollY || document.documentElement.scrollTop || 0;
+        document.documentElement.style.setProperty('--bg-scroll-y', reducedMotion ? '0' : String(y));
+        ticking = false;
+    }
+
+    window.addEventListener('scroll', function () {
+        if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(applyScrollShift);
+        }
+    }, { passive: true });
+
+    applyScrollShift();
+}
+
+// ============================================
 // ANIMATIONS AU SCROLL
 // ============================================
 
@@ -2932,7 +3197,7 @@ function createSkillItem(skill) {
  */
 function initScrollAnimations() {
     // Sélectionner tous les éléments à animer
-    const animatedElements = document.querySelectorAll('.section, .skill-category, .project-card, .article-item, .experience-card, .service-card');
+    const animatedElements = document.querySelectorAll('.section, .skill-category, .skill-category-card, .project-card, .article-item, .experience-card, .service-card');
     
     
     // Créer un Intersection Observer pour détecter quand les éléments entrent dans la vue
@@ -3185,11 +3450,13 @@ function changeLanguage(lang) {
     loadProjects();
     loadExperiences();
     loadArticles();
+    loadSkills();
     syncHeaderStackHeight();
     requestAnimationFrame(function() {
         syncHeroRoleLineToNameWidthSoon();
     });
     startHeroTypewriter(lang);
+    updateNewsletterUiTexts();
 }
 
 /**
@@ -3386,7 +3653,31 @@ function initArticleAdmin() {
             }
             setCurrentArticlesDataset(next);
             refreshArticleEditorPreview();
+            const isNewArticle = !(editingIndex !== undefined && editingIndex !== '');
             await notifySupabasePortfolioPersist('articles');
+            if (isNewArticle) {
+                const notifyRes = await sendNewsletterForNewArticle(article);
+                if (notifyRes && notifyRes.ok) {
+                    const sent = Number(notifyRes.sent) || 0;
+                    const failed = Number(notifyRes.failed) || 0;
+                    if (sent > 0) {
+                        showToast('Newsletter : ' + sent + ' notification(s) envoyée(s).', 'success');
+                    } else if (failed > 0) {
+                        const hint = notifyRes.resendError ? ' ' + String(notifyRes.resendError).slice(0, 120) : '';
+                        showToast('Newsletter : envoi échoué pour ' + failed + ' abonné(s).' + hint, 'info');
+                    } else if ((Number(notifyRes.total) || 0) === 0) {
+                        showToast('Article publié. Aucun abonné newsletter actif.', 'info');
+                    }
+                } else if (notifyRes && notifyRes.reason === 'no_session') {
+                    showToast('Article publié. Connectez-vous à Supabase (admin) pour envoyer la newsletter.', 'info');
+                } else if (notifyRes && notifyRes.reason === 'email_not_configured') {
+                    showToast('Article publié. Configurez RESEND_API_KEY et NEWSLETTER_FROM_EMAIL dans Supabase.', 'info');
+                } else if (notifyRes && notifyRes.reason === 'function_not_deployed') {
+                    showToast('Article publié. Déployez la fonction notify-newsletter sur Supabase.', 'info');
+                } else if (notifyRes && notifyRes.reason) {
+                    showToast('Newsletter : ' + notifyRes.reason, 'info');
+                }
+            }
             loadArticles();
             updateLocalArticlesList();
             if (adminPanel) adminPanel.style.display = 'none';

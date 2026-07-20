@@ -16,6 +16,7 @@
       "ctaPrimary": "Me contacter",
       "subtitleRotate": [
         "UI/UX Developer et Junior Web3 Developer",
+        "Licence en Environnement et Développement durable",
         "Databases Designer & Manager",
         "Réviseur des projets Web2 & Web3",
         "Créateur de contenus Web3 & formateur",
@@ -69,7 +70,12 @@
       "blockchain": "Blockchain & Cardano",
       "tools": "Outils",
       "certifications": "Certifications",
-      "certified": "Certifié"
+      "certified": "Certifié",
+      "back": "Retour aux catégories",
+      "skillOne": "compétence",
+      "skillMany": "compétences",
+      "emptyCategory": "Aucune compétence dans cette catégorie.",
+      "loading": "Chargement des compétences..."
     },
     "experiences": {
       "title": "Expériences",
@@ -111,6 +117,20 @@
       "previous": "Précédent",
       "next": "Suivant"
     },
+    "newsletter": {
+      "kicker": "Newsletter",
+      "title": "Restez informé de mes publications",
+      "emailLabel": "Adresse email",
+      "emailPlaceholder": "votre@email.com",
+      "submit": "S'inscrire",
+      "success": "Inscription confirmée. Vous serez notifié à chaque nouvel article.",
+      "already": "Cet email est déjà inscrit à la newsletter.",
+      "invalid": "Adresse email invalide.",
+      "unavailable": "Newsletter indisponible pour le moment (Supabase non configuré).",
+      "setupRequired": "Newsletter en cours de configuration côté serveur. Réessayez dans quelques minutes.",
+      "error": "Impossible de finaliser l'inscription. Réessayez plus tard.",
+      "sending": "Inscription en cours…"
+    },
     "cv": {
       "title": "Mon CV",
       "view": "Voir le CV",
@@ -151,6 +171,7 @@
       "ctaPrimary": "Contact me",
       "subtitleRotate": [
         "UI/UX Developer and Junior Web3 Developer",
+        "Bachelor's in Environmental and Sustainable Development",
         "Databases Designer & Manager",
         "Web2 & Web3 Projects Reviewer",
         "Web3 Contents Creator & Trainer",
@@ -204,7 +225,12 @@
       "blockchain": "Blockchain & Cardano",
       "tools": "Tools",
       "certifications": "Certifications",
-      "certified": "Certified"
+      "certified": "Certified",
+      "back": "Back to categories",
+      "skillOne": "skill",
+      "skillMany": "skills",
+      "emptyCategory": "No skills in this category yet.",
+      "loading": "Loading skills..."
     },
     "experiences": {
       "title": "Experience",
@@ -245,6 +271,20 @@
       "readArticle": "Read article",
       "previous": "Previous",
       "next": "Next"
+    },
+    "newsletter": {
+      "kicker": "Newsletter",
+      "title": "Stay updated on new posts",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@email.com",
+      "submit": "Subscribe",
+      "success": "Subscription confirmed. You'll be notified for each new article.",
+      "already": "This email is already subscribed.",
+      "invalid": "Invalid email address.",
+      "unavailable": "Newsletter unavailable right now (Supabase not configured).",
+      "setupRequired": "Newsletter is being set up on the server. Please try again in a few minutes.",
+      "error": "Could not complete subscription. Please try again later.",
+      "sending": "Subscribing…"
     },
     "cv": {
       "title": "My Resume",

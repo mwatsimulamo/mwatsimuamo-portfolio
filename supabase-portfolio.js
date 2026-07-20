@@ -136,6 +136,57 @@
         return { ok: true, session: out.data && out.data.session ? out.data.session : null };
     };
 
+    window.subscribeNewsletterEmail = async function (email, lang) {
+        var client = getClient();
+        if (!client) return { ok: false, reason: 'no_client' };
+        var normalized = String(email || '').trim().toLowerCase();
+        if (!normalized || normalized.indexOf('@') < 1) return { ok: false, reason: 'invalid_email' };
+        var safeLang = lang === 'en' ? 'en' : 'fr';
+        var ins = await client.from('newsletter_subscribers').insert({
+            email: normalized,
+            lang: safeLang,
+            active: true
+        });
+        if (ins.error) {
+            if (ins.error.code === '23505') return { ok: true, already: true };
+            if (ins.error.code === 'PGRST205' || /newsletter_subscribers/i.test(ins.error.message || '')) {
+                return { ok: false, reason: 'table_missing' };
+            }
+            return { ok: false, reason: ins.error.message };
+        }
+        return { ok: true };
+    };
+
+    window.notifyNewsletterNewArticle = async function (articleMeta) {
+        var client = getClient();
+        if (!client) return { ok: false, reason: 'no_client' };
+        var sess = await client.auth.getSession();
+        if (!sess.data || !sess.data.session) return { ok: false, reason: 'no_session' };
+        try {
+            var res = await client.functions.invoke('notify-newsletter', {
+                body: articleMeta || {}
+            });
+            if (res.error) {
+                var msg = res.error.message || 'invoke_failed';
+                if (/Function not found|404|not deployed/i.test(msg)) {
+                    return { ok: false, reason: 'function_not_deployed' };
+                }
+                return { ok: false, reason: msg };
+            }
+            var data = res.data || {};
+            if (data.ok === false) return { ok: false, reason: data.reason || 'notify_failed' };
+            return {
+                ok: true,
+                sent: Number(data.sent) || 0,
+                failed: Number(data.failed) || 0,
+                total: Number(data.total) || 0,
+                resendError: data.resend_error || ''
+            };
+        } catch (err) {
+            return { ok: false, reason: (err && err.message) ? err.message : 'invoke_failed' };
+        }
+    };
+
     var sbBarReady = false;
     window.initSupabasePortfolioBar = function () {
         if (sbBarReady) return;

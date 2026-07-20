@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Portfolio professionnel - Développeur Full Stack spécialisé en Blockchain et Cardano">
-    <meta name="theme-color" content="#0a1628">
-    <title>Mon Portfolio Professionnel</title>
+    <meta name="description" content="Olivier Mwatsimulamo — Portfolio Web3, Cardano, articles et projets">
+    <meta name="theme-color" content="#ffffff">
+    <title>mwatsimulamo</title>
 
     <!-- Favicon : photo de profil -->
     <link rel="icon" type="image/png" sizes="32x32" href="assets/images/profile.png">
@@ -23,23 +23,33 @@
     <!-- Styles personnalisés -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body data-theme="dark">
+<body data-theme="light">
     <script>
         (function () {
             try {
                 var theme = localStorage.getItem('portfolio-theme');
                 if (theme === 'light' || theme === 'dark') {
                     document.body.setAttribute('data-theme', theme);
+                    document.documentElement.setAttribute('data-theme', theme);
+                    var meta = document.querySelector('meta[name="theme-color"]');
+                    if (meta) meta.setAttribute('content', theme === 'dark' ? '#030f2e' : '#ffffff');
                 }
-            } catch (e) { /* mode sombre par défaut via attribut HTML */ }
+            } catch (e) { /* thème clair par défaut via attribut HTML */ }
         })();
     </script>
     <!-- Indicateur de progression de défilement (scroll) -->
     <div id="scrollProgressBar" class="scroll-progress-bar" aria-hidden="true"></div>
 
-    <!-- Effets d'arrière-plan de lueurs d'ambiance (orbes lumineux) -->
-    <div class="ambient-glow ambient-glow-1" aria-hidden="true"></div>
-    <div class="ambient-glow ambient-glow-2" aria-hidden="true"></div>
+    <!-- Arrière-plan unifié (fixe, sans coutures entre sections) -->
+    <div class="portfolio-bg" aria-hidden="true">
+        <div class="portfolio-bg__base"></div>
+        <div class="portfolio-bg__mesh"></div>
+        <div class="portfolio-bg__grid"></div>
+        <div class="portfolio-bg__vignette"></div>
+        <div class="portfolio-bg__glow portfolio-bg__glow--1"></div>
+        <div class="portfolio-bg__glow portfolio-bg__glow--2"></div>
+        <div class="portfolio-bg__glow portfolio-bg__glow--3"></div>
+    </div>
 
     <!-- En-tête : barre contact + navigation flottante (design type « pilule ») -->
     <header class="site-header" id="siteHeader">
@@ -141,34 +151,6 @@
         </div>
     </section>
 
-    <!-- Section À propos (bandeau texte, sans photo dupliquée du hero) -->
-    <section id="apropos" class="section about-section">
-        <div class="container">
-            <div class="about-band">
-                <header class="about-band-head">
-                    <div class="about-band-accent" aria-hidden="true"></div>
-                    <div class="about-band-head-copy">
-                        <h2 class="section-title about-band-title" data-i18n="about.title">Quelque chose sur moi</h2>
-                        <p class="about-band-lead" data-i18n="about.envLead">
-                            Diplômé en Environnement et Développement durable, passionné par le climat et les grands enjeux environnementaux.
-                        </p>
-                    </div>
-                </header>
-                <div class="about-band-grid">
-                    <p class="about-text" data-i18n="about.text1">
-                        Je suis UI/UX Developer et Junior Web3 Developer, spécialisé dans la blockchain Cardano : je combine technologies web modernes et innovation blockchain pour des expériences numériques intuitives et utiles.
-                    </p>
-                    <p class="about-text" data-i18n="about.text2">
-                        Au-delà du développement, je contribue à la croissance de l'écosystème Cardano et Web3 en RD Congo, formation, communauté, rédaction technique, en reliant Web2 et Web3 avec une attention aux impacts et à une innovation responsable.
-                    </p>
-                    <p class="about-text about-text--wide" data-i18n="about.text3">
-                        Le climat et le développement durable nourrissent ma façon de voir la tech : j'aspire à des solutions concrètes, des communautés plus fortes, et un apprentissage continu, entre protection de l'environnement et systèmes décentralisés.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Section Expériences (cartes premium + descriptions repliables) -->
     <section id="experiences" class="section section-alt experiences-section">
         <div class="container">
@@ -197,66 +179,29 @@
     </section>
 
     <!-- Section Compétences -->
-    <section id="competences" class="section section-alt">
+    <section id="competences" class="section section-alt skills-section">
         <div class="container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
-                <h2 class="section-title" data-i18n="skills.title" style="margin-bottom: 0;">Compétences</h2>
-                <button class="btn btn-secondary admin-only" id="adminSkillsBtn" style="display: none;">
+            <div class="skills-section-head">
+                <h2 class="section-title skills-section-title" data-i18n="skills.title">Compétences</h2>
+                <button class="btn btn-secondary admin-only" id="adminSkillsBtn" type="button" style="display: none;">
                     <i class="fas fa-cog"></i> Administration
                 </button>
             </div>
-            
-            <!-- Frontend -->
-            <div class="skill-category">
-                <h3 class="skill-category-title">
-                    <i class="fas fa-paint-brush"></i> <span data-i18n="skills.frontend">Frontend</span>
-                </h3>
-                <div class="skills-grid" id="skillsFrontend">
-                    <!-- Les compétences seront chargées dynamiquement depuis skills.json -->
-                    <div class="loading">Chargement des compétences...</div>
-                </div>
-            </div>
 
-            <!-- Backend -->
-            <div class="skill-category">
-                <h3 class="skill-category-title">
-                    <i class="fas fa-server"></i> <span data-i18n="skills.backend">Backend</span>
-                </h3>
-                <div class="skills-grid" id="skillsBackend">
-                    <!-- Les compétences seront chargées dynamiquement depuis skills.json -->
-                    <div class="loading">Chargement des compétences...</div>
-                </div>
-            </div>
+            <div class="skills-stage" id="skillsStage">
+                <div class="skills-categories-grid" id="skillsCategoriesGrid" role="list" aria-label="Catégories de compétences"></div>
 
-            <!-- Blockchain / Cardano -->
-            <div class="skill-category cardano-highlight">
-                <h3 class="skill-category-title">
-                    <i class="fas fa-coins"></i> <span data-i18n="skills.blockchain">Blockchain & Cardano</span>
-                </h3>
-                <div class="skills-grid" id="skillsBlockchain">
-                    <!-- Les compétences seront chargées dynamiquement depuis skills.json -->
-                    <div class="loading">Chargement des compétences...</div>
-                </div>
-            </div>
-
-            <!-- Outils -->
-            <div class="skill-category">
-                <h3 class="skill-category-title">
-                    <i class="fas fa-tools"></i> <span data-i18n="skills.tools">Outils</span>
-                </h3>
-                <div class="skills-grid" id="skillsTools">
-                    <!-- Les compétences seront chargées dynamiquement depuis skills.json -->
-                    <div class="loading">Chargement des compétences...</div>
-                </div>
-            </div>
-
-            <!-- Certifications -->
-            <div class="skill-category">
-                <h3 class="skill-category-title">
-                    <i class="fas fa-award"></i> <span data-i18n="skills.certifications">Certifications</span>
-                </h3>
-                <div class="skills-grid" id="skillsCertifications">
-                    <div class="loading">Chargement...</div>
+                <div class="skills-category-view" id="skillsCategoryView" hidden>
+                    <div class="skills-category-view-head">
+                        <button type="button" class="btn btn-secondary skills-back-btn" id="skillsBackBtn">
+                            <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                            <span data-i18n="skills.back">Retour aux catégories</span>
+                        </button>
+                    </div>
+                    <div class="skill-category skill-category--open cardano-highlight" id="skillsCategoryPanel">
+                        <h3 class="skill-category-title" id="skillsCategoryPanelTitle"></h3>
+                        <div class="skills-grid" id="skillsCategoryPanelGrid"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -777,6 +722,32 @@
                             <span>GitHub</span>
                         </a>
                     </div>
+
+                    <article class="newsletter-card cardano-highlight" id="newsletter" aria-labelledby="newsletterTitle">
+                        <div class="newsletter-card-glow" aria-hidden="true"></div>
+                        <div class="newsletter-card-icon" aria-hidden="true">
+                            <i class="fas fa-envelope-open-text"></i>
+                        </div>
+                        <p class="newsletter-card-kicker" data-i18n="newsletter.kicker">Newsletter</p>
+                        <h3 class="newsletter-card-title" id="newsletterTitle" data-i18n="newsletter.title">Restez informé de mes publications</h3>
+                        <form class="newsletter-form" id="newsletterForm" novalidate>
+                            <label class="sr-only" for="newsletterEmail" data-i18n="newsletter.emailLabel">Adresse email</label>
+                            <input
+                                type="email"
+                                id="newsletterEmail"
+                                name="email"
+                                class="newsletter-input"
+                                autocomplete="email"
+                                required
+                                placeholder="votre@email.com"
+                            >
+                            <button type="submit" class="btn btn-primary newsletter-submit" id="newsletterSubmitBtn">
+                                <i class="fas fa-bell" aria-hidden="true"></i>
+                                <span data-i18n="newsletter.submit">S'inscrire</span>
+                            </button>
+                        </form>
+                        <p class="newsletter-status" id="newsletterStatus" aria-live="polite"></p>
+                    </article>
                 </div>
                 <div class="contact-form-container">
                     <h3 class="contact-form-title" data-i18n="contact.form">Formulaire de contact</h3>
@@ -797,7 +768,7 @@
                         </div>
                         <div class="form-group">
                             <label for="message" data-i18n="contact.message">Message</label>
-                            <textarea id="message" name="message" rows="4" required placeholder="Votre message..."></textarea>
+                            <textarea id="message" name="message" rows="3" required placeholder="Votre message..."></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary btn-contact-submit" data-i18n="contact.send">
                             <i class="fas fa-paper-plane"></i> Envoyer
